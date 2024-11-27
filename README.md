@@ -8,9 +8,18 @@ Formats and other resources to support [Gerrit log files](https://gerrit-review.
   * [Install](#install)
   * [Update](#update)
   * [Uninstall](#uninstall)
+  * [Switch to a different Gerrit version](#switch-to-a-different-gerrit-version)
 * [Usage](#usage)
+  * [Queries](#queries)
+  * [Scripts](#scripts)
+  * [Headless mode](#headless-mode)
 * [Resources](#resources)
+  * [Lnav cheatsheet](#lnav-cheatsheet)
+  * [Regex](#regex)
 * [Development](#development)
+  * [Add and test a new format](#add-and-test-a-new-format)
+  * [Add and test a new script](#add-and-test-a-new-script)
+
 
 ## Installation
 
@@ -57,10 +66,44 @@ Please note that lnav by default also will store configuration, session, etc. in
 ### Uninstall
 
 To remove all resources that this repository is adding to lnav, either remove the folder `~/.lnav/formats/installed`
-or run the install script with the --remove flag i.e. `install.sh --remove`
+or run the install script with the --remove flag i.e
+
+```shell
+install.sh --remove
+```
+
+### Switch to a different Gerrit version
+
+If there are differences in the log formats, or in the Gerrit api, you can choose to install the specific resources for
+a particular Gerrit version that is supported by this repository just by running the `install.sh` script again.
+
+As part of the installation process you will be able to choose the particular version of Gerrit, atm the version of
+Gerrit supported are:
+
+| Resource folder | Gerrit Versions | Notes |
+|-----------------|-----------------|-------|
+| default         | 3.11, 3.10, 3.9 |       |
+
+If a version is not supported, but you would like to add it, please check the sections
+[Add and test a new format](#add-and-test-a-new-format) and [Add and test a new script](#add-and-test-a-new-script)
+as a guide to add a new format or script. 
 
 ## Usage
 
+### Queries
+
+### Scripts
+
+### Headless mode
+
 ## Resources
 
+### Lnav cheatsheet
+
+### Regex
+
 ## Development
+
+### Add and test a new format
+
+### Add and test a new script
