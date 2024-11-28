@@ -68,6 +68,24 @@ function install_script_files() {
   done
 }
 
+function install_csv2json_if_needed() {
+  pushd "$(pwd)/csv2json" > /dev/null
+  npm list --json > /dev/null 2>&1
+  if [ $? -eq 1 ]; then
+    echo -e "\nLooks like the node project csv2json (required for graphs) has missing dependencies."
+    read -p "Run npm install for csv2json now?  (y/n)?" choice
+    case "$choice" in
+      y|Y )
+        echo ""
+        npm install
+        ;;
+      * )
+        ;;
+    esac
+  fi
+  popd > /dev/null
+}
+
 function install(){
   mkdir -p "$DESTINATION_FOLDER"
   set_version
@@ -75,6 +93,8 @@ function install(){
   install_format_files
   install_script_files "httpd"
   install_script_files "misc"
+  install_csv2json_if_needed
+  echo -e "\nDone."
 }
 
 case $1 in
