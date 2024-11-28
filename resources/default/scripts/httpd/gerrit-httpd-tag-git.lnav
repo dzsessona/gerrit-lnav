@@ -1,0 +1,10 @@
+#
+# @synopsis: gerrit-httpd-tag-git
+# @description: Tags the http git operation (receive|upload)-pack
+#
+
+# ------------------------------------------
+# ADD TAGS FOR GIT-(RECEIVE|UPLOAD)-PACK
+# ------------------------------------------
+;UPDATE gerrit_httpd_log SET log_tags = json_concat(log_tags, '#git-receive-pack') WHERE log_body LIKE '%service=git-receive-pack%' and method = 'GET' and status_code = 200
+;UPDATE gerrit_httpd_log SET log_tags = json_concat(log_tags, '#git-upload-pack') WHERE log_body LIKE '%service=git-upload-pack%' and method = 'GET' and status_code = 200

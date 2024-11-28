@@ -1,0 +1,13 @@
+#
+# @synopsis: gerrit-httpd-tag-all
+# @description: Tags the static, http-git and rest-api calls
+#
+
+# ------------------------------------------
+# CALL SCRIPT TO TAG GIT AND REST OPERATIONS
+# ------------------------------------------
+|gerrit-httpd-tag-git
+|gerrit-httpd-tag-rest-write
+|gerrit-httpd-tag-rest-read
+|gerrit-httpd-tag-static
+|gerrit-httpd-view-tags

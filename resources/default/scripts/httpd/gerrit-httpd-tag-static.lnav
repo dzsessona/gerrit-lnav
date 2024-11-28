@@ -1,0 +1,18 @@
+#
+# @synopsis: gerrit-httpd-tag-static
+# @description: Tags the http get static content
+#
+
+# ------------------------------------------
+# ADD TAGS FOR static content
+# ------------------------------------------
+;UPDATE gerrit_httpd_log
+SET log_tags = CASE
+    -- Change-related tags
+    WHEN log_body LIKE '/fonts/%' AND method = 'GET' THEN json_concat(log_tags, '#static-fonts')
+    WHEN log_body LIKE '/bower_components/%' AND method = 'GET' THEN json_concat(log_tags, '#static-bower')
+    WHEN log_body LIKE '/elements/%' AND method = 'GET' THEN json_concat(log_tags, '#static-elements')
+    WHEN log_body LIKE '/styles/%' AND method = 'GET' THEN json_concat(log_tags, '#static-styles')
+    WHEN log_body LIKE '/Documentation/index.html' AND (method = 'HEAD' OR method = 'GET') THEN json_concat(log_tags, '#static-documentation')
+    ELSE log_tags
+END

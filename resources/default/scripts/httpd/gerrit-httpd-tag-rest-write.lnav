@@ -1,0 +1,207 @@
+#
+# @synopsis: gerrit-httpd-tag-rest-write
+# @description: Tags the messages that are a rest-api call
+
+# ------------------------------------------
+# ADD TAGS FOR REST-API OPERATIONS (changes)
+# ------------------------------------------
+;UPDATE gerrit_httpd_log
+SET log_tags = CASE
+    -- Change-related tags
+    WHEN (log_body LIKE '/changes/'  OR log_body LIKE '/a/changes/') AND method = 'POST' THEN json_concat(log_tags, '#change-create')
+    WHEN (log_body LIKE '/projects/%/create.change'  OR log_body LIKE '/a/projects/%/create.change') AND method = 'POST' THEN json_concat(log_tags, '#change-create')
+    WHEN (log_body LIKE '/changes/%/ready'  OR log_body LIKE '/a/changes/%/ready') AND method = 'POST' THEN json_concat(log_tags, '#change-set-ready')
+    WHEN (log_body LIKE '/changes/%/wip' OR log_body LIKE '/a/changes/%/wip') AND method = 'POST' THEN json_concat(log_tags, '#change-set-wip')
+    WHEN (log_body LIKE '/changes/%/private' OR log_body LIKE '/a/changes/%/private') AND method = 'POST' THEN json_concat(log_tags, '#change-mark-private')
+    WHEN (log_body LIKE '/changes/%/private' OR log_body LIKE '/a/changes/%/private') AND method = 'DELETE' THEN json_concat(log_tags, '#change-unmark-private')
+    WHEN (log_body LIKE '/changes/%/private.delete' OR log_body LIKE '/changes/%/private.delete') AND method = 'POST' THEN json_concat(log_tags, '#change-unmark-private')
+    WHEN (log_body LIKE '/changes/%/topic' OR log_body LIKE '/a/changes/%/topic') AND method = 'PUT' AND status_code = '200' THEN json_concat(log_tags, '#change-set-topic')
+    WHEN (log_body LIKE '/changes/%/topic' OR log_body LIKE '/a/changes/%/topic') AND method = 'PUT' AND status_code = '204' THEN json_concat(log_tags, '#change-delete-topic')
+    WHEN (log_body LIKE '/changes/%/topic' OR log_body LIKE '/a/changes/%/topic') AND method = 'DELETE' THEN json_concat(log_tags, '#change-delete-topic')
+    WHEN (log_body LIKE '/changes/%/hashtags' OR log_body LIKE '/a/changes/%/hashtags') AND method = 'POST' THEN json_concat(log_tags, '#change-set-hastags')
+    WHEN (log_body LIKE '/changes/%/message' OR log_body LIKE '/a/changes/%/message') AND method = 'PUT' THEN json_concat(log_tags, '#change-set-commit-message')
+    WHEN (log_body LIKE '/changes/%/index' OR log_body LIKE '/a/changes/%/index') AND method = 'POST' THEN json_concat(log_tags, '#change-index')
+    WHEN (log_body LIKE '/changes/%/abandon' OR log_body LIKE '/a/changes/%/abandon') AND method = 'POST' THEN json_concat(log_tags, '#change-abandon')
+    WHEN (log_body LIKE '/changes/%/submit' OR log_body LIKE '/a/changes/%/submit') AND method = 'POST' THEN json_concat(log_tags, '#change-submit')
+    -- The case of #change-restore might be a mistake, as it is identical to #change-abandon condition
+    WHEN (log_body LIKE '/changes/%/rebase' OR log_body LIKE '/a/changes/%/rebase') AND method = 'POST' THEN json_concat(log_tags, '#change-rebase')
+    WHEN (log_body LIKE '/changes/%/rebase:chain' OR log_body LIKE '/a/changes/%/rebase:chain') AND method = 'POST' THEN json_concat(log_tags, '#change-rebase-chain')
+    -- Revision-related tags
+    WHEN (log_body LIKE '/changes/%/revisions/%/review' OR log_body LIKE '/a/changes/%/revisions/%/review') AND method = 'POST' THEN json_concat(log_tags, '#revision-set-review')
+    WHEN (log_body LIKE '/changes/%/revisions/%/description' OR log_body LIKE '/a/changes/%/revisions/%/description') AND method = 'PUT' THEN json_concat(log_tags, '#revision-set-description')
+    WHEN (log_body LIKE '/changes/%/revisions/%/drafts' OR log_body LIKE '/a/changes/%/revisions/%/drafts') AND log_body NOT LIKE '/changes/%/revisions/%/drafts/%' AND log_body NOT LIKE '/a/changes/%/revisions/%/drafts/%' AND method = 'PUT' THEN json_concat(log_tags, '#revision-create-draft-comment')
+    WHEN (log_body LIKE '/changes/%/revisions/%/drafts/%' OR log_body LIKE '/a/changes/%/revisions/%/drafts/%') AND method = 'PUT' THEN json_concat(log_tags, '#revision-update-draft-comment')
+    WHEN (log_body LIKE '/changes/%/revisions/%/drafts/%' OR log_body LIKE '/a/changes/%/revisions/%/drafts/%') AND method = 'DELETE' THEN json_concat(log_tags, '#revision-delete-draft-comment')
+    WHEN (log_body LIKE '/changes/%/revisions/%/files/%/reviewed' OR log_body LIKE '/a/changes/%/revisions/%/files/%/reviewed') AND method = 'PUT' THEN json_concat(log_tags, '#revision-mark-file-reviewed')
+    WHEN (log_body LIKE '/changes/%/revisions/%/files/%/reviewed' OR log_body LIKE '/a/changes/%/revisions/%/files/%/reviewed') AND method = 'DELETE' THEN json_concat(log_tags, '#revision-delete-file-reviewed')
+    WHEN (log_body LIKE '/changes/%/revisions/%/rebase' OR log_body LIKE '/a/changes/%/revisions/%/rebase') AND method = 'POST' THEN json_concat(log_tags, '#revision-rebase')
+    WHEN (log_body LIKE '/changes/%/revisions/%/submit' OR log_body LIKE '/a/changes/%/revisions/%/submit') AND method = 'POST' THEN json_concat(log_tags, '#revision-submit')
+    WHEN (log_body LIKE '/changes/%/revisions/%/cherrypick' OR log_body LIKE '/a/changes/%/revisions/%/cherrypick') AND method = 'POST' THEN json_concat(log_tags, '#revision-cherrypick')
+    -- Attention set-related tags
+    WHEN (log_body LIKE '/changes/%/attention' OR log_body LIKE '/a/changes/%/attention') AND method = 'POST' THEN json_concat(log_tags, '#change-attentionset-add')
+    WHEN (log_body LIKE '/changes/%/attention/%' OR log_body LIKE '/a/changes/%/attention/%') AND method = 'DELETE' THEN json_concat(log_tags, '#change-attentionset-remove')
+    WHEN (log_body LIKE '/changes/%/attention/%/delete' OR log_body LIKE '/a/changes/%/attention/%/delete') AND method = 'POST' THEN json_concat(log_tags, '#change-attentionset-remove')
+    ELSE log_tags
+END
+
+# ------------------------------------------
+# ADD TAGS FOR REST-API OPERATIONS (accounts)
+# ------------------------------------------
+;UPDATE gerrit_httpd_log
+SET log_tags = CASE
+    -- Account-related tags
+    WHEN method = 'PUT' AND (log_body LIKE '/accounts/%' OR log_body LIKE '/a/accounts/%')
+        AND log_body NOT LIKE '/accounts/self/name'
+        AND log_body NOT LIKE '/a/accounts/self/name'
+        AND log_body NOT LIKE '/accounts/self/status'
+        AND log_body NOT LIKE '/a/accounts/self/status'
+        AND log_body NOT LIKE '/accounts/self/username'
+        AND log_body NOT LIKE '/a/accounts/self/username'
+        AND log_body NOT LIKE '/accounts/self/displayname'
+        AND log_body NOT LIKE '/a/accounts/self/displayname'
+        AND log_body NOT LIKE '/accounts/%/active'
+        AND log_body NOT LIKE '/a/accounts/%/active'
+        AND log_body NOT LIKE '/accounts/%/password.http'
+        AND log_body NOT LIKE '/a/accounts/%/password.http'
+        AND log_body NOT LIKE '/accounts/%/emails/%'
+        AND log_body NOT LIKE '/a/accounts/%/emails/%'
+        AND log_body NOT LIKE '/accounts/%/preferences%'
+        AND log_body NOT LIKE '/a/accounts/%/preferences%'
+        AND log_body NOT LIKE '/accounts/%/starred.changes/%'
+        AND log_body NOT LIKE '/a/accounts/%/starred.changes/%' THEN json_concat(log_tags, '#account-create')
+    WHEN (log_body LIKE '/accounts/self/name' OR log_body LIKE '/a/accounts/self/name') AND method = 'PUT' THEN json_concat(log_tags, '#account-set-name')
+    WHEN (log_body LIKE '/accounts/self/name' OR log_body LIKE '/a/accounts/self/name') AND method = 'DELETE' THEN json_concat(log_tags, '#account-delete-name')
+    WHEN (log_body LIKE '/accounts/self/status' OR log_body LIKE '/a/accounts/self/status') AND method = 'PUT' THEN json_concat(log_tags, '#account-set-status')
+    WHEN (log_body LIKE '/accounts/self/username' OR log_body LIKE '/a/accounts/self/username') AND method = 'PUT' THEN json_concat(log_tags, '#account-set-username')
+    WHEN (log_body LIKE '/accounts/self/displayname' OR log_body LIKE '/a/accounts/self/displayname') AND method = 'PUT' THEN json_concat(log_tags, '#account-set-displayname')
+    WHEN (log_body LIKE '/accounts/%/active' OR log_body LIKE '/a/accounts/%/active') AND method = 'PUT' THEN json_concat(log_tags, '#account-set-active')
+    WHEN (log_body LIKE '/accounts/%/active' OR log_body LIKE '/a/accounts/%/active') AND method = 'DELETE' THEN json_concat(log_tags, '#account-delete-active')
+    WHEN (log_body LIKE '/accounts/%/password.http' OR log_body LIKE '/a/accounts/%/password.http') AND method = 'PUT' THEN json_concat(log_tags, '#account-set-password')
+    WHEN (log_body LIKE '/accounts/%/password.http' OR log_body LIKE '/a/accounts/%/password.http') AND method = 'DELETE' THEN json_concat(log_tags, '#account-delete-password')
+    WHEN (log_body LIKE '/accounts/%/emails/%' OR log_body LIKE '/a/accounts/%/emails/%') AND log_body NOT LIKE '/accounts/%/emails/%/preferred' AND log_body NOT LIKE '/a/accounts/%/emails/%/preferred' AND method = 'PUT' THEN json_concat(log_tags, '#account-set-email')
+    WHEN (log_body LIKE '/accounts/%/emails/%/preferred' OR log_body LIKE '/a/accounts/%/emails/%/preferred')AND method = 'PUT' THEN json_concat(log_tags, '#account-set-preferred-email')
+    WHEN (log_body LIKE '/accounts/%/emails/%' OR log_body LIKE '/a/accounts/%/emails/%') AND method = 'DELETE' THEN json_concat(log_tags, '#account-delete-email')
+    WHEN (log_body LIKE '/accounts/%/sshkeys' OR log_body LIKE '/a/accounts/%/sshkeys') AND method = 'POST' THEN json_concat(log_tags, '#account-add-ssh-key')
+    WHEN (log_body LIKE '/accounts/%/sshkeys/%' OR log_body LIKE '/a/accounts/%/sshkeys/%') AND method = 'DELETE' THEN json_concat(log_tags, '#account-delete-ssh-key')
+    WHEN (log_body LIKE '/accounts/%/gpgkeys' OR log_body LIKE '/a/accounts/%/gpgkeys') AND method = 'POST' THEN json_concat(log_tags, '#account-gpg-key')
+    WHEN (log_body LIKE '/accounts/%/gpgkeys/%' OR log_body LIKE '/a/accounts/%/gpgkeys/%') AND method = 'DELETE' THEN json_concat(log_tags, '#account-delete-gpg-key')
+    WHEN (log_body LIKE '/accounts/%/preferences%' OR log_body LIKE '/a/accounts/%/preferences%') AND method = 'PUT' THEN json_concat(log_tags, '#account-set-preferences')
+    WHEN (log_body LIKE '/accounts/%/watched.projects%' OR log_body LIKE '/a/accounts/%/watched.projects%') AND method = 'POST' THEN json_concat(log_tags, '#account-set-watched-projects')
+    WHEN (log_body LIKE '/accounts/%/external.ids:delete' OR log_body LIKE '/a/accounts/%/external.ids:delete') AND method = 'DELETE' THEN json_concat(log_tags, '#account-delete-ext-id')
+    WHEN (log_body LIKE '/accounts/%/drafts:delete' OR log_body LIKE '/a/accounts/%/drafts:delete') AND method = 'DELETE' THEN json_concat(log_tags, '#account-delete-draft-comments')
+    WHEN (log_body LIKE '/accounts/%/index' OR log_body LIKE '/a/accounts/%/index') AND method = 'POST' THEN json_concat(log_tags, '#account-index')
+    -- Starred changes-related tags
+    WHEN (log_body LIKE '/accounts/%/starred.changes/%' OR log_body LIKE '/a/accounts/%/starred.changes/%') AND method = 'PUT' THEN json_concat(log_tags, '#account-star-change')
+    WHEN (log_body LIKE '/accounts/%/starred.changes/%' OR log_body LIKE '/a/accounts/%/starred.changes/%') AND method = 'DELETE' THEN json_concat(log_tags, '#account-unstar-change')
+    ELSE log_tags
+END
+
+# ------------------------------------------
+# ADD TAGS FOR REST-API OPERATIONS (config)
+# ------------------------------------------
+;UPDATE gerrit_httpd_log
+SET log_tags = CASE
+    WHEN (log_body LIKE '/config/server/check.consistency' OR log_body LIKE '/a/config/server/check.consistency') AND method = 'POST' THEN json_concat(log_tags, '#config-check-consistency')
+    WHEN (log_body LIKE '/config/server/reload' OR log_body LIKE '/a/config/server/reload') AND method = 'POST' THEN json_concat(log_tags, '#config-reload')
+    WHEN (log_body LIKE '/config/server/email.confirm' OR log_body LIKE '/a/config/server/email.confirm') AND method = 'PUT' THEN json_concat(log_tags, '#config-email-confirm')
+    WHEN (log_body LIKE '/config/server/caches/' OR log_body LIKE '/a/config/server/caches/') AND method = 'POST' THEN json_concat(log_tags, '#config-cache-operation')
+    WHEN (log_body LIKE '/config/server/caches/%/flush' OR log_body LIKE '/a/config/server/caches/%/flush') AND method = 'POST' THEN json_concat(log_tags, '#config-cache-flush')
+    WHEN (log_body LIKE '/config/server/tasks/%' OR log_body LIKE '/a/config/server/tasks/%') AND method = 'DELETE' THEN json_concat(log_tags, '#config-task-delete')
+    ELSE log_tags
+END
+
+# ------------------------------------------
+# ADD TAGS FOR REST-API OPERATIONS (groups)
+# ------------------------------------------
+;UPDATE gerrit_httpd_log
+SET log_tags = CASE
+    -- Group-related tags
+    WHEN method = 'PUT' AND (log_body LIKE '/groups/%' OR log_body LIKE '/a/groups/%')
+        AND log_body NOT LIKE '/groups/%/name'
+        AND log_body NOT LIKE '/a/groups/%/name'
+        AND log_body NOT LIKE '/groups/%/description'
+        AND log_body NOT LIKE '/a/groups/%/description'
+        AND log_body NOT LIKE '/groups/%/options'
+        AND log_body NOT LIKE '/a/groups/%/options'
+        AND log_body NOT LIKE '/groups/%/owner'
+        AND log_body NOT LIKE '/a/groups/%/owner'
+        AND log_body NOT LIKE '/groups/%/members/%'
+        AND log_body NOT LIKE '/a/groups/%/members/%'
+        AND log_body NOT LIKE '/groups/%/groups/%'
+        AND log_body NOT LIKE '/a/groups/%/groups/%' THEN json_concat(log_tags, '#group-create')
+    WHEN (log_body LIKE '/groups/%/name' OR log_body LIKE '/a/groups/%/name') AND method = 'PUT' THEN json_concat(log_tags, '#group-rename')
+    WHEN (log_body LIKE '/groups/%/description' OR log_body LIKE '/a/groups/%/description') AND method = 'PUT' THEN json_concat(log_tags, '#group-set-description')
+    WHEN (log_body LIKE '/groups/%/description' OR log_body LIKE '/a/groups/%/description') AND method = 'DELETE' THEN json_concat(log_tags, '#group-delete-description')
+    WHEN (log_body LIKE '/groups/%/options' OR log_body LIKE '/a/groups/%/options') AND method = 'PUT' THEN json_concat(log_tags, '#group-set-options')
+    WHEN (log_body LIKE '/groups/%/owner' OR log_body LIKE '/a/groups/%/owner') AND method = 'PUT' THEN json_concat(log_tags, '#group-set-owner')
+    WHEN (log_body LIKE '/groups/%/index' OR log_body LIKE '/a/groups/%/index') AND method = 'POST' THEN json_concat(log_tags, '#group-set-owner')
+    -- Members-related tags
+    WHEN (log_body LIKE '/groups/%/members/%' OR log_body LIKE '/a/groups/%/members/%') AND method = 'PUT' THEN json_concat(log_tags, '#group-add-member')
+    WHEN (log_body LIKE '/groups/%/members' OR log_body LIKE '/a/groups/%/members') AND method = 'POST' THEN json_concat(log_tags, '#group-add-members')
+    WHEN (log_body LIKE '/groups/%/members/%' OR log_body LIKE '/a/groups/%/members/%') AND method = 'DELETE' THEN json_concat(log_tags, '#group-delete-member')
+    WHEN (log_body LIKE '/groups/%/members.delete' OR log_body LIKE '/a/groups/%/members.delete') AND method = 'POST' THEN json_concat(log_tags, '#group-delete-members')
+    -- Subgroups-related tags
+    WHEN (log_body LIKE '/groups/%/groups/%' OR log_body LIKE '/a/groups/%/groups/%') AND method = 'PUT' THEN json_concat(log_tags, '#subgroup-add')
+    WHEN (log_body LIKE '/groups/%/groups' OR log_body LIKE '/a/groups/%/groups') AND method = 'POST' THEN json_concat(log_tags, '#subgroup-add-groups')
+    WHEN (log_body LIKE '/groups/%/groups/%' OR log_body LIKE '/a/groups/%/groups/%') AND method = 'DELETE' THEN json_concat(log_tags, '#subgroup-delete')
+    WHEN (log_body LIKE '/groups/%/groups.delete' OR log_body LIKE '/a/groups/%/groups.delete') AND method = 'POST' THEN json_concat(log_tags, '#subgroup-delete-groups')
+    ELSE log_tags
+END
+
+# ------------------------------------------
+# ADD TAGS FOR REST-API OPERATIONS (projects)
+# ------------------------------------------
+;UPDATE gerrit_httpd_log
+SET log_tags = CASE
+    -- Project-related tags
+    WHEN method = 'PUT' AND (log_body LIKE '/projects/%' OR log_body LIKE '/a/projects/%')
+        AND log_body NOT LIKE '/projects/%/config'
+        AND log_body NOT LIKE '/a/projects/%/config'
+        AND log_body NOT LIKE '/projects/%/description'
+        AND log_body NOT LIKE '/a/projects/%/description'
+        AND log_body NOT LIKE '/projects/%/HEAD'
+        AND log_body NOT LIKE '/a/projects/%/HEAD'
+        AND log_body NOT LIKE '/projects/%/access:review'
+        AND log_body NOT LIKE '/a/projects/%/access:review'
+        AND log_body NOT LIKE '/projects/%/branches/%'
+        AND log_body NOT LIKE '/a/projects/%/branches/%'
+        AND log_body NOT LIKE '/projects/%/tags/%'
+        AND log_body NOT LIKE '/a/projects/%/tags/%'
+        AND log_body NOT LIKE '/projects/%/dashboards/%'
+        AND log_body NOT LIKE '/a/projects/%/dashboards/%'
+        AND log_body NOT LIKE '/projects/%/labels/%'
+        AND log_body NOT LIKE '/a/projects/%/labels/%'
+        AND log_body NOT LIKE '/projects/%/submit_requirements/%'
+        AND log_body NOT LIKE '/a/projects/%/submit_requirements/%' THEN json_concat(log_tags, '#project-create')
+    WHEN (log_body LIKE '/projects/%/config' OR log_body LIKE '/a/projects/%/config') AND method = 'PUT' THEN json_concat(log_tags, '#project-set-config')
+    WHEN (log_body LIKE '/projects/%/parent' OR log_body LIKE '/a/projects/%/parent') AND method = 'PUT' THEN json_concat(log_tags, '#project-set-parent')
+    WHEN (log_body LIKE '/projects/%/HEAD' OR log_body LIKE '/a/projects/%/HEAD') AND method = 'PUT' THEN json_concat(log_tags, '#project-set-head')
+    WHEN (log_body LIKE '/projects/%/gc' OR log_body LIKE '/a/projects/%/gc') AND method = 'POST' THEN json_concat(log_tags, '#project-run-gc')
+    WHEN (log_body LIKE '/projects/%/description' OR log_body LIKE '/a/projects/%/description') AND method = 'PUT' THEN json_concat(log_tags, '#project-set-description')
+    WHEN (log_body LIKE '/projects/%/description' OR log_body LIKE '/a/projects/%/description') AND method = 'DELETE' THEN json_concat(log_tags, '#project-delete-description')
+    WHEN (log_body LIKE '/projects/%/access' OR log_body LIKE '/a/projects/%/access') AND method = 'POST' THEN json_concat(log_tags, '#project-edit-access')
+    WHEN (log_body LIKE '/projects/%/access:review' OR log_body LIKE '/a/projects/%/access:review') AND method = 'PUT' THEN json_concat(log_tags, '#project-edit-access-review')
+    WHEN (log_body LIKE '/projects/%/index' OR log_body LIKE '/a/projects/%/index') AND method = 'POST' THEN json_concat(log_tags, '#project-index')
+    WHEN (log_body LIKE '/projects/%/index.changes' OR log_body LIKE '/a/projects/%/index.changes') AND method = 'POST' THEN json_concat(log_tags, '#project-index-changes')
+    -- Branch-related tags
+    WHEN (log_body LIKE '/projects/%/branches/%' OR log_body LIKE '/a/projects/%/branches/%') AND method = 'PUT' THEN json_concat(log_tags, '#branch-create')
+    WHEN (log_body LIKE '/projects/%/branches/%' OR log_body LIKE '/a/projects/%/branches/%') AND method = 'DELETE' THEN json_concat(log_tags, '#branch-delete')
+    WHEN (log_body LIKE '/projects/%/branches:delete' OR log_body LIKE '/a/projects/%/branches:delete') AND method = 'POST' THEN json_concat(log_tags, '#branch-delete-branches')
+    -- Tag-related tags
+    WHEN (log_body LIKE '/projects/%/tags/%' OR log_body LIKE '/a/projects/%/tags/%') AND method = 'PUT' THEN json_concat(log_tags, '#tag-create')
+    WHEN (log_body LIKE '/projects/%/tags/%' OR log_body LIKE '/a/projects/%/tags/%') AND method = 'DELETE' THEN json_concat(log_tags, '#tag-delete')
+    WHEN (log_body LIKE '/projects/%/tags:delete' OR log_body LIKE '/a/projects/%/tags:delete') AND method = 'POST' THEN json_concat(log_tags, '#tag-delete')
+    -- Commit-related tags
+    WHEN (log_body LIKE '/projects/%/commits/%/cherrypick' OR log_body LIKE '/a/projects/%/commits/%/cherrypick') AND method = 'POST' THEN json_concat(log_tags, '#commit-cherrypick')
+    -- Dashboard-related tags
+    WHEN (log_body LIKE '/projects/%/dashboards/%' OR log_body LIKE '/a/projects/%/dashboards/%') AND method = 'PUT' THEN json_concat(log_tags, '#dashboard-set')
+    WHEN (log_body LIKE '/projects/%/dashboards/%' OR log_body LIKE '/a/projects/%/dashboards/%') AND method = 'DELETE' THEN json_concat(log_tags, '#dashboard-delete')
+    -- Label-related tags
+    WHEN (log_body LIKE '/projects/%/labels/%' OR log_body LIKE '/a/projects/%/labels/%') AND method = 'PUT' THEN json_concat(log_tags, '#label-set')
+    WHEN (log_body LIKE '/projects/%/labels/%' OR log_body LIKE '/a/projects/%/labels/%') AND method = 'DELETE' THEN json_concat(log_tags, '#label-delete')
+    WHEN (log_body LIKE '/projects/%/labels/' OR log_body LIKE '/a/projects/%/labels/') AND method = 'POST' THEN json_concat(log_tags, '#label-batch-update')
+    -- Submit requirements-related tags
+    WHEN (log_body LIKE '/projects/%/submit_requirements/%' OR log_body LIKE '/a/projects/%/submit_requirements/%') AND method = 'PUT' THEN json_concat(log_tags, '#submit_req-set')
+    WHEN (log_body LIKE '/projects/%/submit_requirements/%' OR log_body LIKE '/a/projects/%/submit_requirements/%') AND method = 'DELETE' THEN json_concat(log_tags, '#submit_req-delete')
+    ELSE log_tags
+END

@@ -1,0 +1,52 @@
+#
+# @synopsis: gerrit-httpd-tag-rest-read
+# @description: Tags the messages that are a rest-api call
+
+# ------------------------------------------
+# ADD TAGS FOR REST-API OPERATIONS (changes)
+# ------------------------------------------
+;UPDATE gerrit_httpd_log
+SET log_tags = CASE
+    -- Change-related tags
+    WHEN (log_body LIKE '/changes/%'  OR log_body LIKE '/a/changes/%') AND method = 'GET' THEN json_concat(log_tags, '#changes-read')
+    ELSE log_tags
+END
+
+# ------------------------------------------
+# ADD TAGS FOR REST-API OPERATIONS (accounts)
+# ------------------------------------------
+;UPDATE gerrit_httpd_log
+SET log_tags = CASE
+    -- Account-related tags
+    WHEN (log_body LIKE '/accounts/%'  OR log_body LIKE '/a/accounts/%') AND method = 'GET' THEN json_concat(log_tags, '#accounts-read')
+    ELSE log_tags
+END
+
+# ------------------------------------------
+# ADD TAGS FOR REST-API OPERATIONS (config)
+# ------------------------------------------
+;UPDATE gerrit_httpd_log
+SET log_tags = CASE
+    WHEN (log_body LIKE '/config/%'  OR log_body LIKE '/a/config/%') AND method = 'GET' THEN json_concat(log_tags, '#config-read')
+    ELSE log_tags
+END
+
+# ------------------------------------------
+# ADD TAGS FOR REST-API OPERATIONS (groups)
+# ------------------------------------------
+;UPDATE gerrit_httpd_log
+SET log_tags = CASE
+    -- Group-related tags
+    WHEN (log_body LIKE '/groups/%'  OR log_body LIKE '/a/groups/%') AND method = 'GET' THEN json_concat(log_tags, '#groups-read')
+    ELSE log_tags
+END
+
+# ------------------------------------------
+# ADD TAGS FOR REST-API OPERATIONS (projects)
+# ------------------------------------------
+;UPDATE gerrit_httpd_log
+SET log_tags = CASE
+    -- Project-related tags
+    WHEN (log_body LIKE '/projects/%'  OR log_body LIKE '/a/projects/%') AND method = 'GET' THEN json_concat(log_tags, '#projects-read')
+    ELSE log_tags
+END
