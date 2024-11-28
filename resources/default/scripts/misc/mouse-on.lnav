@@ -1,0 +1,5 @@
+#
+# @synopsis: mouse-on
+# @description: shortcut for ':config /ui/mouse/mode enabled'
+#
+:config /ui/mouse/mode enabled

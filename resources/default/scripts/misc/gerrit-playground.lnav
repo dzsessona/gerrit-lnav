@@ -1,0 +1,44 @@
+#
+# @synopsis: gerrit-playground [<subject>]
+# @description: Playground for scripting or running queries
+#
+
+# ------------------------------------------
+# GET A param
+# ------------------------------------------
+;SELECT CASE
+    WHEN $1 IS NULL THEN 'lnav'
+    ELSE $1
+    END AS subject
+
+# ------------------------------------------
+# GET AN ENV VARIABLE
+# ------------------------------------------
+;SELECT $USER AS userenv
+
+# ------------------------------------------
+# SET A constant
+# ------------------------------------------
+;SELECT '!!!' AS postfix
+
+# ------------------------------------------
+# PRINT TO SCREEN
+# ------------------------------------------
+:echo
+:echo
+:echo - $userenv says: hello $subject $postfix
+
+# ------------------------------------------
+# RUN A QUERY
+# ------------------------------------------
+:echo
+:echo Simple example of selecting the first 10 log entries from the httpd_log:
+;SELECT
+     log_time AS timestamp,
+     username,
+     method,
+     log_body as request
+ FROM gerrit_httpd_log
+ LIMIT 10
+:write-table-to -
+

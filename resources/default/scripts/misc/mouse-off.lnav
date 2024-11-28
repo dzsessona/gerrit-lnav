@@ -1,0 +1,5 @@
+#
+# @synopsis: mouse-off
+# @description: shortcut for ':config /ui/mouse/mode disabled'
+#
+:config /ui/mouse/mode disabled
