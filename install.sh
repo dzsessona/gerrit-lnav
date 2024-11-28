@@ -56,14 +56,14 @@ function install_format_files() {
 }
 
 function install_script_files() {
-  for file in "$SOURCE_FOLDER/default"/scripts/*.lnav; do
+  for file in "$SOURCE_FOLDER/default/scripts/$1/"*.lnav; do
     script_file=$(basename $file)
-    if [ -e "$SOURCE_FOLDER/$VERSION/scripts/$script_file" ]; then
+    if [ -e "$SOURCE_FOLDER/$VERSION/scripts/$1/$script_file" ]; then
       echo -e "\tAdding script for Gerrit $VERSION to lnav: $script_file"
-      ln -s "$SOURCE_FOLDER/$VERSION/scripts/$script_file" "$DESTINATION_FOLDER/"
+      ln -s "$SOURCE_FOLDER/$VERSION/scripts/$1/$script_file" "$DESTINATION_FOLDER/"
     else
       echo -e "\tAdding script to lnav: $script_file"
-      ln -s "$SOURCE_FOLDER/default/scripts/$script_file" "$DESTINATION_FOLDER/"
+      ln -s "$SOURCE_FOLDER/default/scripts/$1/$script_file" "$DESTINATION_FOLDER/"
     fi
   done
 }
@@ -73,7 +73,8 @@ function install(){
   set_version
   uninstall
   install_format_files
-  install_script_files
+  install_script_files "httpd"
+  install_script_files "misc"
 }
 
 case $1 in
