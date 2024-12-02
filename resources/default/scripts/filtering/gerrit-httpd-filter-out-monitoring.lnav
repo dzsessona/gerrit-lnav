@@ -1,0 +1,6 @@
+#
+# @synopsis: gerrit-httpd-filter-out-monitoring
+# @description: Adds a filter to hide noise from httpd log
+#
+;INSERT OR IGNORE INTO lnav_view_filters(view_name, enabled, type, language, pattern)
+VALUES ('log', 1, 'out', 'regex', '(((GET)|(HEAD)|(POST)|(PUT))[[:space:]]((\/)|(\/a\/))monitoring\/*)')

@@ -1,0 +1,6 @@
+#
+# @synopsis: gerrit-httpd-filter-out-static
+# @description: Adds a filter to hide noise from httpd log
+#
+;INSERT OR IGNORE INTO lnav_view_filters(view_name, enabled, type, language, pattern)
+VALUES ('log', 1, 'out', 'regex', '(GET[[:space:]]\/favicon\.ico)|(GET[[:space:]]\/fonts.*)|(GET[[:space:]]\/styles.*)|(GET[[:space:]]\/elements.*)|(GET[[:space:]]\/bower_components.*)|(((GET)|(HEAD))[[:space:]]\/Documentation.*)')

@@ -1,0 +1,7 @@
+#
+# @synopsis: gerrit-filters-reset
+# @description: Reset the LOG view by removing all filters
+#
+;DELETE FROM lnav_view_filters WHERE pattern = '(((GET)|(HEAD)|(POST)|(PUT))[[:space:]]((\/)|(\/a\/))monitoring\/*)'
+;DELETE FROM lnav_view_filters WHERE pattern = '(((GET)|(HEAD)|(POST)|(PUT))[[:space:]]((\/)|(\/a\/))plugins\/*)'
+;DELETE FROM lnav_view_filters WHERE pattern = '(GET[[:space:]]\/favicon\.ico)|(GET[[:space:]]\/fonts.*)|(GET[[:space:]]\/styles.*)|(GET[[:space:]]\/elements.*)|(GET[[:space:]]\/bower_components.*)|(((GET)|(HEAD))[[:space:]]\/Documentation.*)'
