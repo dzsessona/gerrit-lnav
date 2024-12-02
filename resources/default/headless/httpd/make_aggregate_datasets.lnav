@@ -1,0 +1,63 @@
+#
+# @description: Output a csv file representing a dataset for every operation in the httpd file(s), aggreagte by operation
+# @env-var: LNAV_OUTPUT_FOLDER (:-/tmp) the folder where to save the output
+# @env-var: LNAV_OUTPUT_FILE (:-/httpd_aggregate_datasets.csv) the output filename
+# @example:
+#    LNAV_OUTPUT_FOLDER=/tmp \
+#    LNAV_OUTPUT_FILE=httpd_aggregate_datasets.csv \
+#    lnav \
+#    -n /tmp/httpd_log \
+#    -f ~/repositories/gerrit-lnav/resources/default/headless/httpd/make_aggregate_dataset.lnav
+
+# ------------------------------------------
+# GET ENV VARIABLES
+# ------------------------------------------
+;SELECT CASE
+    WHEN $LNAV_OUTPUT_FOLDER IS NULL THEN '/tmp'
+    ELSE $LNAV_OUTPUT_FOLDER
+    END AS outfolder
+
+;SELECT CASE
+    WHEN $LNAV_OUTPUT_FILE IS NULL THEN 'httpd_aggregate_datasets.csv'
+    ELSE $LNAV_OUTPUT_FILE
+    END AS outfile
+
+# ------------------------------------------
+# SET THE TAGS
+# ------------------------------------------
+:echo
+:echo ... adding tags
+:echo ... 1/4 processing git messages
+|gerrit-httpd-tag-git
+:echo ... 2/4 processing rest-read messages
+|gerrit-httpd-tag-rest-read
+:echo ... 3/4 processing rest-write messages
+|gerrit-httpd-tag-rest-write
+:echo ... 4/4 processing static messages
+|gerrit-httpd-tag-static
+
+# ------------------------------------------
+# ADD HUMAN READABLE TAGS HELPER TABLE
+# ------------------------------------------
+:echo
+:echo ... making  human readable tags
+|make-human-readable-tags
+
+# -----------------------------------------------------
+# WRITE FOR GRAPH
+# ------------------------------------------------------
+:echo
+:echo ... writing to $outfolder/$outfile
+;SELECT 
+    CASE 
+         WHEN (SELECT message FROM gerrit_tags WHERE tag = json_extract(log_tags,'$[0]')) IS NULL THEN json_extract(log_tags,'$[0]')
+         ELSE (SELECT message FROM gerrit_tags WHERE tag = json_extract(log_tags,'$[0]'))
+    END as Action,
+    COUNT(*) as Total
+FROM gerrit_httpd_log
+WHERE log_tags IS NOT NULL
+GROUP BY log_tags
+ORDER BY Action ASC
+:write-csv-to $outfolder/$outfile
+:echo
+:echo Done.

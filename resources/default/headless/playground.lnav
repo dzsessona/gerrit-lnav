@@ -1,0 +1,36 @@
+#
+# @description: playground for lnav headless scripts
+# @env-var: LNAV_OUTPUT_FOLDER the folder where to save the output
+# @example: LNAV_OUTPUT_FOLDER=/tmp lnav -q -n /tmp/httpd_log -f ~/repositories/gerrit-lnav/resources/default/headless/playground.lnav
+#
+
+# ------------------------------------------
+# GET ENV VARIABLES
+# ------------------------------------------
+;SELECT CASE
+    WHEN $LNAV_OUTPUT_FOLDER IS NULL THEN '/tmp'
+    ELSE $LNAV_OUTPUT_FOLDER
+    END AS outfolder
+
+# ------------------------------------------
+# Work out filename from logs, used for output
+# ------------------------------------------
+;SELECT log_path AS filepath FROM gerrit_httpd_log LIMIT 1
+;SELECT CHARINDEX('/', REVERSE($filepath)) AS last_slash
+;SELECT REVERSE(SUBSTRING(REVERSE($filepath), 0, $last_slash)) AS filename
+:redirect-to ${outfolder}/${filename}.txt
+
+# ------------------------------------------
+# QUERY AND WRITE REPORT AND CSV
+# ------------------------------------------
+:echo
+:echo these are the first messages of the logs in a table format
+;SELECT 
+    log_time as Time,
+    log_body as Request,
+    method,
+    status_code || ' (' || (SELECT message FROM http_status_codes WHERE status = status_code) || ') ' as 'status_code'
+ FROM gerrit_httpd_log LIMIT 5
+:write-table-to -
+:write-csv-to ${outfolder}/${filename}.csv
+

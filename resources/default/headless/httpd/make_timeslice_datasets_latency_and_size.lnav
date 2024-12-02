@@ -1,0 +1,87 @@
+#
+# @description: Output a csv file representing a dataset for every operation in the httpd file(s)
+# @env-var: LNAV_OUTPUT_FOLDER (:-/tmp) the folder where to save the output
+# @env-var: LNAV_OUTPUT_FILE (:-/httpd_timeslice_datasets_w_latency_size.csv) the output filename
+# @env-var: LNAV_TIME_SLICE (:-1m) the time slice duration
+# @example:
+#    LNAV_OUTPUT_FOLDER=/tmp \
+#    LNAV_OUTPUT_FILE=httpd_timeslice_datasets_w_latency_size.csv \
+#    LNAV_TIME_SLICE=1m \
+#    lnav \
+#    -n /tmp/httpd_log \
+#    -f ~/repositories/gerrit-lnav/resources/default/headless/httpd/make_timeslice_datasets_latency_and_size.lnav
+
+# ------------------------------------------
+# GET ENV VARIABLES
+# ------------------------------------------
+;SELECT CASE
+    WHEN $LNAV_OUTPUT_FOLDER IS NULL THEN '/tmp'
+    ELSE $LNAV_OUTPUT_FOLDER
+    END AS outfolder
+
+;SELECT CASE
+    WHEN $LNAV_OUTPUT_FILE IS NULL THEN 'httpd_timeslice_datasets_w_latency_size.csv'
+    ELSE $LNAV_OUTPUT_FILE
+    END AS outfile
+
+;SELECT CASE
+    WHEN $LNAV_TIME_SLICE IS NULL THEN '1m'
+    ELSE $LNAV_TIME_SLICE
+    END AS time_slice
+
+# ------------------------------------------
+# SET THE TAGS
+# ------------------------------------------
+:echo
+:echo ... adding tags
+:echo ... 1/4 processing git messages
+|gerrit-httpd-tag-git
+:echo ... 2/4 processing rest-read messages
+|gerrit-httpd-tag-rest-read
+:echo ... 3/4 processing rest-write messages
+|gerrit-httpd-tag-rest-write
+:echo ... 4/4 processing static messages
+|gerrit-httpd-tag-static
+
+# ------------------------------------------
+# ADD HUMAN READABLE TAGS HELPER TABLE
+# ------------------------------------------
+:echo
+:echo ... making  human readable tags
+|make-human-readable-tags
+
+
+# -----------------------------------------------------
+# WRITE FOR GRAPH
+# ------------------------------------------------------
+;WITH RECURSIVE hc_timeslice AS (SELECT 
+	SUBSTRING(timeslice(log_time, $time_slice), 0, 17) AS slice,
+    CASE
+         WHEN (SELECT message FROM gerrit_tags WHERE tag = json_extract(log_tags,'$[0]')) IS NULL THEN json_extract(log_tags,'$[0]')
+         ELSE (SELECT message FROM gerrit_tags WHERE tag = json_extract(log_tags,'$[0]'))
+    END as Action,
+	CAST(latency AS INTEGER) AS latency,
+    CAST(response_size AS INTEGER) AS response_size,
+    CASE WHEN CAST(status_code  AS INTEGER) < 400 THEN 1 ELSE 0 END AS ok,
+	CASE WHEN CAST(status_code  AS INTEGER) >= 400 THEN 1 ELSE 0 END AS ko
+  FROM gerrit_httpd_log 
+  WHERE log_tags IS NOT NULL
+  AND latency != '-')
+SELECT 
+	slice AS minute,
+    Action,
+    COUNT(*) AS Total,
+	SUM(ok) AS ok,
+	SUM(ko) AS ko,
+	ROUND(AVG(latency),2) AS avglatency,
+    MIN(latency) AS minlatency,
+    MAX(latency) AS maxlatency,
+    ROUND(AVG(response_size),2) AS avgsize,
+    MIN(response_size) AS minsize,
+    MAX(response_size) AS maxsize
+FROM hc_timeslice 
+GROUP BY minute, Action
+ORDER BY minute ASC
+:write-csv-to $outfolder/$outfile
+:echo
+:echo Done.
