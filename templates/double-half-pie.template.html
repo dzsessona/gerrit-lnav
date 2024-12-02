@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en" style="height: 100%">
+   <head>
+      <meta charset="utf-8">
+   </head>
+   <body style="height: 100%; margin: 10">
+      <div id="container" style="height: 100%"></div>
+      <script type="text/javascript" src="https://fastly.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js"></script>
+      <script type="text/javascript">
+         var dom = document.getElementById('container');
+         var myChart = echarts.init(dom, null, {
+           renderer: 'svg',
+           useDirtyRect: false
+         });
+         var app = {};
+var option = {
+  color: [PH_COLORS],
+  title: {
+    left: 'center',
+    top: '2%',
+    text: 'PH_TITLE',
+    textStyle: {
+      fontStyle: 'italic',
+      color: '#777',
+      fontSize: 22
+    }
+  },
+  dataset: [{
+    source: PH_DATASET1
+  }],
+  series: [{
+      type: 'pie',
+      radius: ['55%', '85%'],
+      center: ['50%', '70%'],
+      startAngle: 180,
+      endAngle: 360,
+      label: {
+        position: 'inside',
+        formatter: '{d}%',
+        color: 'black',
+        fontSize: 13
+      },
+      percentPrecision: 1,
+      itemStyle: {
+        borderRadius: 6,
+        borderColor: '#fff',
+        borderWidth: 2
+      },
+    },
+    {
+      type: 'pie',
+      radius: ['55%', '85%'],
+      center: ['50%', '70%'],
+      startAngle: 180,
+      endAngle: 360,
+      itemStyle: {
+        borderRadius: 6,
+        borderColor: '#fff',
+        borderWidth: 2
+      },
+      label: {
+        position: 'outside',
+        fontSize: 14,
+        fontFamily: 'sans-serif',
+        color: '#555'
+      },
+    },
+    {
+      type: 'pie',
+      radius: ['0%', '45%'],
+      center: ['50%', '70%'],
+      color: ['#0077b6', '#ff7f51', '#d6ccc2', '#ce4257'],
+      startAngle: 180,
+      endAngle: 360,
+      label: {
+        position: 'inside',
+        formatter: '  {b} - {d}%',
+        color: 'white',
+        fontSize: 14
+      },
+      percentPrecision: 1,
+      itemStyle: {
+        borderRadius: 6,
+        borderColor: '#fff',
+        borderWidth: 2
+      },
+      data: PH_DATASET2
+    },
+  ],
+  toolbox: {
+    show: true,
+    feature: {
+      dataView: {
+        readOnly: false
+      },
+      restore: {},
+      saveAsImage: {}
+    }
+  },
+  tooltip: {
+    trigger: 'item'
+  },
+  legend: {
+    top: '8%',
+    type: 'scroll',
+    orient: 'vertical',
+    left: '10%',
+    textStyle: {
+      fontSize: 12,
+      fontFamily: 'sans-serif',
+      color: '#555'
+    }
+  }
+};
+        if (option && typeof option === 'object') {
+          myChart.setOption(option);
+        }     
+        window.addEventListener('resize', myChart.resize);
+      </script>
+   </body>
+</html>

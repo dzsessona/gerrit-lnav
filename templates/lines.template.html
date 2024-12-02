@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en" style="height: 100%">
+   <head>
+      <meta charset="utf-8">
+   </head>
+   <body style="height: 90%; margin: 10">
+      <div id="container" style="height: 100%"></div>
+      <script type="text/javascript" src="https://fastly.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js"></script>
+      <script type="text/javascript">
+         var dom = document.getElementById('container');
+         var myChart = echarts.init(dom, null, {
+           renderer: 'svg',
+           useDirtyRect: false
+         });
+         var app = {};
+var option = {
+  color: [PH_COLORS],
+  title: {
+    left: 'center',
+    top: '2%',
+    text: 'PH_TITLE',
+    textStyle: {
+      fontStyle: 'italic',
+      color: '#777',
+      fontSize: 22
+    }
+  },
+  dataset: [{
+      id: 'dataset_raw',
+      source: PH_DATASETS
+    },
+    PH_TRANSFORMATIONS
+  ],
+  xAxis: {
+    type: 'time',
+    name: 'Time',
+    nameLocation: 'end',
+    axisTick: {
+      show: true,
+    },
+    splitLine: {
+      show: true
+    },
+    minorTick: {
+      show: true
+    },
+    minorSplitLine: {
+      show: true
+    }
+  },
+  yAxis: {
+    type: 'value',
+    name: 'Operations',
+    axisTick: {
+      show: true,
+    },
+    splitLine: {
+      show: true
+    },
+  },
+  series: [
+    PH_SERIES
+  ],
+  toolbox: {
+    show: true,
+    feature: {
+      dataView: {
+        readOnly: false
+      },
+      restore: {},
+      saveAsImage: {}
+    }
+  },
+
+  legend: {
+    top: '8%',
+    type: 'scroll',
+    orient: 'vertical',
+    left: '10%',
+    textStyle: {
+      fontSize: 12,
+      fontFamily: 'sans-serif',
+      color: '#555'
+    }
+  },
+  tooltip: {
+    trigger: 'axis',
+    axisPointer: {
+      type: 'cross',
+      animation: false,
+      label: {
+        backgroundColor: '#505765'
+      }
+    }
+  },
+
+  dataZoom: [{
+    type: 'slider'
+  }]
+};
+        if (option && typeof option === 'object') {
+          myChart.setOption(option);
+        }     
+        window.addEventListener('resize', myChart.resize);
+      </script>
+   </body>
+</html>

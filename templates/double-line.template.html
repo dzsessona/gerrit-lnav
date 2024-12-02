@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en" style="height: 100%">
+   <head>
+      <meta charset="utf-8">
+   </head>
+   <body style="height: 90%; margin: 10">
+      <div id="container" style="height: 100%"></div>
+      <script type="text/javascript" src="https://fastly.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js"></script>
+      <script type="text/javascript">
+         var dom = document.getElementById('container');
+         var myChart = echarts.init(dom, null, {
+           renderer: 'svg',
+           useDirtyRect: false
+         });
+         var app = {};
+var option = {
+  color: ['#0077b6', '#ff7f51'],
+  title: {
+    text: 'PH_TITLE',
+    left: 'center'
+  },
+  dataset: [{
+    id: 'dataset_raw',
+    source: PH_DATASET
+  }],
+  grid: [{
+      left: 60,
+      right: 50,
+      height: '35%'
+    },
+    {
+      left: 60,
+      right: 50,
+      top: '46%',
+      height: '4%'
+    },
+    {
+      left: 60,
+      right: 50,
+      top: '52%',
+      height: '24%'
+    }
+  ],
+  xAxis: [{
+      type: 'time',
+      boundaryGap: false,
+      axisLine: {
+        show: false
+      }
+    },
+    {
+      gridIndex: 1,
+      type: 'time',
+      boundaryGap: false,
+      axisLine: {
+        show: false
+      },
+      position: 'top',
+      axisLabel: {
+        show: false
+      },
+      axisTick: {
+        show: false
+      }
+    },
+    {
+      gridIndex: 2,
+      type: 'time',
+      boundaryGap: false,
+      axisLine: {
+        show: false
+      },
+      axisTick: {
+        show: false
+      },
+      position: 'top',
+      axisLabel: {
+        show: false
+      }
+    }
+  ],
+  yAxis: [{
+      name: 'Response-time (millis)',
+      nameTextStyle: {
+        color: '#555',
+        fontWeight: 'bold',
+        fontSize: 14,
+        align: 'left'
+      },
+      type: 'value',
+      axisLine: {
+        show: true,
+        symbol: ['none', 'arrow'],
+        symbolSize: [6, 8]
+      }
+    },
+    {
+      gridIndex: 1,
+      show: false,
+      name: 'Total',
+      type: 'value',
+      axisLabel: {
+        show: false
+      },
+    },
+    {
+      gridIndex: 2,
+      name: 'Size (bytes)',
+      type: 'value',
+      inverse: true,
+      nameTextStyle: {
+        color: '#555',
+        fontWeight: 'bold',
+        fontSize: 14,
+        align: 'left'
+      },
+      axisLine: {
+        show: true,
+        symbol: ['arrow', 'none'],
+        symbolSize: [6, 8]
+      }
+    }
+  ],
+  series: [{
+      type: 'line',
+      areaStyle: {
+        color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{
+            offset: 0,
+            color: 'rgba(0, 119, 182,0.9)'
+          },
+          {
+            offset: 1,
+            color: 'rgba(0, 119, 182,0.2)'
+          }
+        ])
+      },
+      lineStyle: {
+        width: 2
+      },
+      name: 'Response Time',
+      datasetId: 'dataset_raw',
+      showSymbol: false,
+      encode: {
+        x: 'minute',
+        y: 'avglatency'
+      }
+    },
+    {
+      color: 'red',
+      type: 'line',
+      name: 'max',
+      datasetId: 'dataset_raw',
+      showSymbol: false,
+      encode: {
+        x: 'minute',
+        y: 'maxlatency'
+      },
+      lineStyle: {
+        width: 1,
+        type: 'dashed'
+      },
+    },
+    {
+      color: 'black',
+      type: 'line',
+      name: 'min',
+      datasetId: 'dataset_raw',
+      showSymbol: false,
+      encode: {
+        x: 'minute',
+        y: 'minlatency'
+      },
+      lineStyle: {
+        width: 1,
+        type: 'dashed'
+      },
+    },
+    {
+      type: 'bar',
+      stack: 'q',
+      barWidth: '90%',
+      color: 'rgba(255, 0, 0, 0.2) ',
+      name: 'Failures',
+      datasetId: 'dataset_raw',
+      xAxisIndex: 1,
+      yAxisIndex: 1,
+      showSymbol: false,
+      encode: {
+        x: 'minute',
+        y: 'ko'
+      }
+    },
+    {
+      type: 'bar',
+      barWidth: '90%',
+      color: '#e9ecef',
+      name: 'Total',
+      stack: 'q',
+      datasetId: 'dataset_raw',
+      xAxisIndex: 1,
+      yAxisIndex: 1,
+      showSymbol: false,
+      encode: {
+        x: 'minute',
+        y: 'ok'
+      }
+    },
+    {
+      type: 'line',
+      name: 'Size',
+      areaStyle: {},
+      datasetId: 'dataset_raw',
+      xAxisIndex: 2,
+      yAxisIndex: 2,
+      showSymbol: false,
+      encode: {
+        x: 'minute',
+        y: 'avgsize'
+      },
+      lineStyle: {
+        width: 2
+      },
+      areaStyle: {
+        color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{
+            offset: 0,
+            color: 'rgba(235, 94, 40,0.1)'
+          },
+          {
+            offset: 1,
+            color: 'rgba(235, 94, 40,0.9)'
+          }
+        ])
+      },
+    }
+  ],
+  tooltip: {
+    trigger: 'axis',
+    axisPointer: {
+      animation: false
+    }
+  },
+  toolbox: {
+    feature: {
+      dataZoom: {
+        yAxisIndex: 'none'
+      },
+      restore: {},
+      saveAsImage: {}
+    }
+  },
+  axisPointer: {
+    link: [{
+      xAxisIndex: 'all'
+    }]
+  },
+  dataZoom: [{
+    type: 'slider',
+    xAxisIndex: [0, 1, 2]
+  }],
+};
+         if (option && typeof option === 'object') {
+           myChart.setOption(option);
+         }     
+         window.addEventListener('resize', myChart.resize);
+      </script>
+   </body>
+</html>
