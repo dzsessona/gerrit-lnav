@@ -14,13 +14,14 @@ Formats and other resources to support [Gerrit log files](https://gerrit-review.
   * [Queries](#queries)
   * [Scripts](#scripts)
     * [http_log](#http_log)
+    * [filtering](#filtering)
+    * [misc](#misc)
   * [Headless Scripts](#headless-scripts)
-* [Development](#development)
-  * [Add and test a new format](#add-and-test-a-new-format)
-  * [Add and test a new script](#add-and-test-a-new-script)
 * [Resources](#resources)
   * [Lnav cheatsheet](#lnav-cheatsheet)
   * [Formats](#formats)
+    * [Add and test a new format](#add-and-test-a-new-format)
+
 
 # Installation
 
@@ -41,6 +42,7 @@ Press `q` to exit lnav.
 1. Clone the [gerrit_lnav repository](https://github.com/dzsessona/gerrit-lnav)
 2. Cd into the cloned repository
 3. Run the installer script `install.sh`
+4. The first time installing it will ask also to install depnedencies for csv2json. csv2json is required only when using lnav to build graphs.
 
 ```shell
 git clone "git@github.com:dzsessona/gerrit-lnav.git" && \
@@ -86,8 +88,7 @@ Gerrit supported are:
 | default         | 3.11, 3.10, 3.9 |       |
 
 If a version is not supported, but you would like to add it, please check the sections
-[Add and test a new format](#add-and-test-a-new-format) and [Add and test a new script](#add-and-test-a-new-script)
-as a guide to add a new format or script.
+[Add and test a new format](#add-and-test-a-new-format) as a guide.
 
 # Usage
 
@@ -105,7 +106,7 @@ the `:config` config command. For example, you can enable the mouse mode by runn
 considering that gerrit-lnav provide a script for it, you could simply call the script `|mouse-on`, in fact looking at
 the script implementation:
 
-```shell
+```
 #
 # @synopsis: mouse-on
 # @description: shortcut for ':config /ui/mouse/mode enabled'
@@ -187,6 +188,15 @@ The following is an (hopefully) up-to-date summary of the scripts provided by ge
 | gerrit-httpd-tag-all        | Concatenate gerrit-httpd-tag-git, rest and static         | -                                                       | -         | -       | tbd              |
 | gerrit-httpd-view-tags      | Display a report on screen with stats for each tag        | username: if present will filter by the username passed | no        | -       | tbd              |
 
+### filtering
+
+| Name                               | Description                                            | Parameters | Gerrit Versions |
+|------------------------------------|--------------------------------------------------------|------------|-----------------|
+| gerrit-httpd-filter-out-monitoring | filter out form the LOG view all calls for mornitoring | -          | all             |
+| gerrit-httpd-filter-out-plugins    | filter out form the LOG view all calls to plugins      | -          | all             |
+| gerrit-httpd-filter-out-static     | filter out form the LOG view all calls to static       | -          | all             |
+| gerrit-filters-reset               | reset the LOG view removing all filters above          | -          | all             |
+
 ### misc
 
 | Name              | Description                                    | Parameters                                              | Gerrit Versions |
@@ -197,14 +207,115 @@ The following is an (hopefully) up-to-date summary of the scripts provided by ge
 
 ## Headless Scripts
 
-# Development
+Lnav has the option to be executed in headless mode. This is achieved by using the flags:
 
-## Add and test a new format
+- `-n` Run without the curses UI (headless mode).
+- `-q` Do not print informational messages.
+- `-f <path>` Execute the given command file. This option can be given multiple times.
 
-## Add and test a new script
+A command file does not need to be copied in the usual `~/.lnav/formats/installed` folder, but it can contain commands
+and scripts instructions, so if in the command reference a custom script, the script needs to be present in that folder. 
+
+Again, to leverage syntax highlight, all command files present in this repo (also called headless scripts) have the suffix `.lnav`.
+
+Let's have a look at the simple `playground.lnav` headless script; the purpose of this command file is just
+to extract from an httpd_log the first 5 lines and save them in different formats. This is a bit useless but you can use it
+to test new headless scripts exacly as the `|gerrit-playgroud` script.
+
+In this example, let's assume that this repo is installed and  is in the location `~/repositories/gerrit-lnav` on your machine. 
+Let's also assume that there is an http_log file in `/tmp/httpd_log`. 
+
+Command files cannot take parameter, but can read env variables. Looking at its description, this script takes a variable
+LNAV_OUTPUT_FOLDER used to specify the folder to save the output. So that we can execute it like this:
+
+```shell
+LNAV_OUTPUT_FOLDER=/tmp \
+lnav -q \
+ -n /tmp/httpd_log \
+ -f ~/repositories/gerrit-lnav/resources/default/headless/playground.lnav
+```
+
+And the headless script will:
+* get the env variable LNAV_OUTPUT_FOLDER -> /tmp
+* get the base name of the file to analyze using the `log_path` filed in the db -> httpd.log
+* redirect the output the report file to generate using `:redirect-to` and `:write-table-to`-> /tmp/httpd_log.txt
+* save the filed specified in the select as csv values using  `:write-csv-to ${outfolder}/${filename}.csv`-> /tmp/httpd_log.csv
+
+So after its execution:
+
+```
+cat /tmp/httpd_log.txt
+these are the first messages of the logs in a table format
+┏━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━┳━━━━━━━━━━━━━━━━━━━┓
+┃         Time          ┃                                                             Request                                                             ┃method┃    status_code    ┃
+┡━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━╇━━━━━━━━━━━━━━━━━━━┩
+│2024-11-19 16:23:45.489│/config/server/version                                                                                                           │GET   │200 (OK)           │
+│2024-11-19 16:24:15.591│/config/server/version                                                                                                           │GET   │200 (OK)           │
+│2024-11-19 16:24:40.952│/a/test/info/refs?service=git-upload-pack                                                                                        │GET   │401 (Unauthorized) │
+│2024-11-19 16:24:41.068│/a/test/info/refs?service=git-upload-pack                                                                                        │GET   │200 (OK)           │
+│2024-11-19 16:24:41.211│/a/test/git-upload-pack                                                                                                          │POST  │200 (OK)           │
+└━━━━━━━━━━━━━━━━━━━━━━━┴━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┴━━━━━━┴━━━━━━━━━━━━━━━━━━━┘
+
+cat /tmp/httpd_log.csv
+Time,Request,method,status_code
+2024-11-19 16:23:45.489,/config/server/version,GET,200 (OK) 
+2024-11-19 16:24:15.591,/config/server/version,GET,200 (OK) 
+2024-11-19 16:24:40.952,/a/test/info/refs?service=git-upload-pack,GET,401 (Unauthorized) 
+2024-11-19 16:24:41.068,/a/test/info/refs?service=git-upload-pack,GET,200 (OK)
+```
 
 # Resources
 
 ## Lnav cheatsheet
 
+- `:` Execute an internal command
+- `;` Open the SQLite Interface to execute SQL statement
+- `|` Execute an lnav script located in a format directory
+
+
+- `q` Return to the previous view/quit
+- `?` View/leave builtin help
+- `Ctrl` + `]` Abort the prompt
+- `Ctrl` + `r` Reset the current session state. The session state includes things like filters, bookmarks, and hidden fields.
+
+
+- `/` Search for lines matching a regular expression
+- `n` / `Shift + n` Next/previous search hit
+- `e` / `Shift + e` Next/previous error
+- `w` / `Shift + w` Next/previous warning
+- `o` / `Shift + o` Forward/backward through log messages with a matching "opid" field
+
+
+- `x` Toggle the hiding of log message fields
+- `p` Toggle the display of the log parser results
+
+
+Please check the full cheat sheet on [lnav hotkeys](https://docs.lnav.org/en/latest/hotkeys.html)
+
 ## Formats
+
+This is intended to be a reference of formats so that is easier to build / modify / test them.
+
+| Log       | table            | opid | identifiers                   | hidden       | Regex name | Regex                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+|-----------|------------------|------|-------------------------------|--------------|------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| httpd_log | gerrit_httpd_log | -    | username, method, status_code | thread, host | std        | ^\(?<host>\(\[0\-9\]\{1,3\}\.\)\{3\}\[0\-9\]\{1,3\}\)\[\[:blank:\]\]\[\(?<thread>\[^\]\]\+\)\]\[\[:blank:\]\]\-\[\[:blank:\]\]\(?<username>S\+\)\[\[:blank:\]\]\[\(?<timestamp>d\{4\}\-d\{2\}\-d\{2\}Td\{2\}:d\{2\}:d\{2\}\(?:\.d\{3,6\}\)\)\(?:Z\|\(\[\+\-\]d\{2\}:d\{2\}\)\)?\]\[\[:blank:\]\]"\(?<method>\[\[:word:\]\]\+\)\[\[:blank:\]\]\(?<request>S\+\)\[\[:blank:\]\]\(?<protocol>\[^"\]\+\)"\[\[:blank:\]\]\(?<status\_code>d\+\)\[\[:blank:\]\]\(?<response\_size>\(\-\)\|d\+\)\[\[:blank:\]\]\(?<latency>\(\-\)\|d\+\)\[\[:blank:\]\]\(?<referer>S\+\)\[\[:blank:\]\]\(?<client\_agent>\-\|\(\("\)?\[^"\]\*\("\)?\)\)\[\[:blank:\]\]\(?<total\_cpu>\(\-\)\|d\+\)\[\[:blank:\]\]\(?<user\_cpu>\(\-\)\|d\+\)\[\[:blank:\]\]\(?<memory>d\+\)\[\[:blank:\]\]\(?<command\_status>\("\-1"\)\|\(\-\)\|\("0"\)\)$<br> |
+|           |                  |      |                               |              | ipv6       | ^\(?<host>\[\(\[0\-9\]:\)\{7\}d\]\)\[\[:blank:\]\]\[\(?<thread>\[^\]\]\+\)\]\[\[:blank:\]\]\-\[\[:blank:\]\]\(?<username>S\+\)\[\[:blank:\]\]\[\(?<timestamp>d\{4\}\-d\{2\}\-d\{2\}Td\{2\}:d\{2\}:d\{2\}\(?:\.d\{3,6\}\)\)\(?:Z\|\(\[\+\-\]d\{2\}:d\{2\}\)\)?\]\[\[:blank:\]\]"\(?<method>\[\[:word:\]\]\+\)\[\[:blank:\]\]\(?<request>S\+\)\[\[:blank:\]\]\(?<protocol>\[^"\]\+\)"\[\[:blank:\]\]\(?<status\_code>d\+\)\[\[:blank:\]\]\(?<response\_size>\(\-\)\|d\+\)\[\[:blank:\]\]\(?<latency>\(\-\)\|d\+\)\[\[:blank:\]\]\(?<referer>S\+\)\[\[:blank:\]\]\(?<client\_agent>\-\|\(\("\)?\[^"\]\*\("\)?\)\)\[\[:blank:\]\]\(?<total\_cpu>\(\-\)\|d\+\)\[\[:blank:\]\]\(?<user\_cpu>\(\-\)\|d\+\)\[\[:blank:\]\]\(?<memory>d\+\)\[\[:blank:\]\]\(?<command\_status>\("\-1"\)\|\(\-\)\|\("0"\)\)$<br>                   |
+|           |                  |      |                               |              | 2.13       | ^\(?<host>\(\[0\-9\]\{1,3\}\.\)\{3\}\[0\-9\]\{1,3\}\)\[\[:blank:\]\]\-\[\[:blank:\]\]\(?<username>S\+\)\[\[:blank:\]\]\[\(?<timestamp>d\{2\}/\[A\-Za\-z\]\{3\}/d\{4\}:d\{2\}:d\{2\}:d\{2\}\[\[:blank:\]\]\[\+\-\]\[0\-9\]\{4\}\)\]\[\[:blank:\]\]"\(?<method>\[\[:word:\]\]\+\)\[\[:blank:\]\]\(?<request>S\+\)\[\[:blank:\]\]\(?<protocol>\[^"\]\+\)"\[\[:blank:\]\]\(?<status\_code>d\+\)\[\[:blank:\]\]\(?<response\_size>\(\-\)\|d\+\)\[\[:blank:\]\]\(?<referer>\(\-\)\|"S\+"\)\[\[:blank:\]\]\(?<client\_agent>\-\|\(\("\)?\[^"\]\*\("\)?\)\)$<br>                                                                                                                                                                                                                                                                 |
+
+### Add and test a new format
+
+To import and test a format starting from [regex101](https://regex101.com):
+
+1. test your regex with some test strings in https://regex101.com
+2. save the regex
+3. generate the format from it, with `lnav -m` i.e. `lnav -m regex101 import https://regex101.com/r/XXXXX/1 test`, the resulting format will be installed in `~/.lnav/formats/installed/test.json`
+4. modify the format setting opid, fields etc
+5. don't forget to copy to this repo once ready, give it a proper name and remove the generated one (in this case test.json) form `~/.lnav/formats/installed`
+6. run the gerrit_lnav installer again to add the format
+
+
+Note: When lnav loads a file, it tries each log format against the first 15,000 lines of the file trying to find a match.
+To check if the format you defined is the one that is used when viewing a gerrit log file in lnav, simply lunch lnav
+in debug mode i.e.
+
+`truncate -s 0 /tmp/lnav.log && lnav -d /tmp/lnav.log ${YOUR_LOG_FILE_TO_TEST}`
