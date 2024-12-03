@@ -1,0 +1,40 @@
+# @description: Rewrite the given http_log file without messages for the static calls
+# @env-var: LNAV_OUTPUT_FOLDER (:-/tmp) the folder where the output file will be generated
+# @note: the new httpd_log file will have the same name of the file analyzed, with the '.reduced' suffix 
+# @example:
+#   LNAV_OUTPUT_FOLDER=/tmp \
+#   lnav -q \
+#   -n ~/gerrit/logs/httpd_log \
+#   -f ~/repositories/gerrit-lnav/resources/default/headless/httpd/rewrite_without_static.lnav
+
+# ------------------------------------------
+# GET A param
+# ------------------------------------------
+;SELECT CASE
+    WHEN $LNAV_OUTPUT_FOLDER IS NULL THEN '/tmp'
+    ELSE $LNAV_OUTPUT_FOLDER
+    END AS out_folder
+
+# ------------------------------------------
+# Work out filename from logs, used for output
+# ------------------------------------------
+;SELECT log_path AS filepath FROM gerrit_httpd_log LIMIT 1
+;SELECT CHARINDEX('/', REVERSE($filepath)) AS last_slash
+;SELECT REVERSE(SUBSTRING(REVERSE($filepath), 0, $last_slash)) AS filename
+
+# ------------------------------------------
+# MARK everything except static content
+# ------------------------------------------
+;UPDATE gerrit_httpd_log
+SET log_mark = CASE
+    -- Change-related tags
+    WHEN log_body NOT LIKE '/fonts/%' 
+    AND log_body NOT LIKE '/bower_components/%' 
+    AND log_body NOT LIKE '/elements/%' 
+    AND log_body NOT LIKE '/styles/%' 
+    AND log_body != '/Documentation/index.html' 
+    AND log_body != '/favicon.ico'
+    AND (method = 'GET' OR method = 'HEAD') THEN 1
+    ELSE 0
+END
+:write-raw-to $out_folder/$filename.reduced

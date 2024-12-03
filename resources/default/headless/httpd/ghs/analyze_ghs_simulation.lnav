@@ -1,0 +1,197 @@
+# @description: Output a report with the percentages of the operation interesting for ghs real life simulation
+# @env-var: LNAV_METRIC_CLONES (:-2000) the number of clones retrived from Gerrit metrics
+# @env-var: LNAV_CLONES_BYTES (:-195000000) the size in bytes of the original (before simulation) size of the repo
+# @env-var: LNAV_OUTPUT_FOLDER (:-/tmp) the folder where the output file will be generated
+# @note: report file will be the same name of the file analyzed, with the '.report.txt' suffix 
+# @example:
+#   LNAV_METRIC_CLONES=2000 \
+#   LNAV_CLONES_BYTES=195000000 \
+#   LNAV_OUTPUT_FOLDER=/tmp \
+#   LNAV_OUTPUT_FILE=httpd_aggregate_datasets.csv \
+#   lnav -q \
+#   -n ~/real-life/httpd_log-r6 \
+#   -f ~/repositories/gerrit-lnav/resources/default/headless/httpd/ghs/analyze_ghs_simulation.lnav
+
+# ------------------------------------------
+# GET AN ENV VARIABLES (fetches, output file)
+# ------------------------------------------
+;SELECT CASE
+    WHEN $LNAV_METRIC_CLONES IS NULL THEN 1000
+    ELSE CAST($LNAV_METRIC_CLONES AS INTEGER)
+    END AS clones_from_metrics
+
+;SELECT CASE
+    WHEN $LNAV_CLONES_BYTES IS NULL THEN 195000000
+    ELSE CAST($LNAV_CLONES_BYTES AS INTEGER)
+    END AS clones_bytes
+
+;SELECT CASE
+    WHEN $LNAV_OUTPUT_FOLDER IS NULL THEN '/tmp'
+    ELSE $LNAV_OUTPUT_FOLDER
+    END AS outfolder
+
+;SELECT CASE
+    WHEN $LNAV_TIME_SLICE IS NULL THEN '1m'
+    ELSE $LNAV_TIME_SLICE
+    END AS time_slice
+
+# ------------------------------------------
+# Work out filename from logs, used for output
+# ------------------------------------------
+;SELECT log_path AS filepath FROM gerrit_httpd_log LIMIT 1
+;SELECT CHARINDEX('/', REVERSE($filepath)) AS last_slash
+;SELECT REVERSE(SUBSTRING(REVERSE($filepath), 0, $last_slash)) AS filename
+
+# ------------------------------------------
+# TAG REST AND GIT
+# ------------------------------------------
+|gerrit-httpd-tag-git
+|gerrit-httpd-tag-rest-write
+
+# ------------------------------------------
+# CREATE ON THE FLY TABLE FOR TAGS
+# ------------------------------------------
+;CREATE TABLE IF NOT EXISTS gerrit_tags
+(
+    tag  TEXT PRIMARY KEY,
+    message TEXT
+);
+;INSERT OR IGNORE INTO gerrit_tags(tag, message) VALUES
+    -- Git
+    ('#git-upload-pack'                 ,'Git-http - upload pack'),
+    ('#git-receive-pack'                ,'Git-http - receive pack'),
+    -- Rest changes
+    ('#change-abandon'                  ,'REST-changes - abandon change'),
+    ('#change-submit'                   ,'REST-changes - submit change'),
+    ('#revision-set-review'             ,'REST-changes - review')
+    
+
+:redirect-to $outfolder/$filename.report.txt
+
+# -----------------------------------------------------
+# GET TOTAL OF OPERATION LISTED
+# ------------------------------------------------------
+;SELECT COUNT(*) AS total
+FROM gerrit_httpd_log 
+WHERE log_tags IS NOT NULL 
+AND (json_extract(log_tags,'$[0]') = '#git-upload-pack'
+OR json_extract(log_tags,'$[0]') = '#git-receive-pack'
+OR json_extract(log_tags,'$[0]') = '#change-abandon'
+OR json_extract(log_tags,'$[0]') = '#change-submit'
+OR json_extract(log_tags,'$[0]') = '#revision-set-review')
+
+# -----------------------------------------------------
+# DISPLAY ON SCREEN OPERATIONS STATS
+# ------------------------------------------------------
+:echo
+:echo
+:echo - HTTP operations summary (total $total)
+;SELECT 
+    CASE 
+         WHEN (SELECT message FROM gerrit_tags WHERE tag = json_extract(log_tags,'$[0]')) IS NULL THEN json_extract(log_tags,'$[0]')
+         ELSE (SELECT message FROM gerrit_tags WHERE tag = json_extract(log_tags,'$[0]'))
+     END as Action,
+    COUNT(*) as Operations,
+    ROUND((COUNT(*)* 100.0 / $total),2) AS '% of total'
+FROM gerrit_httpd_log
+WHERE log_tags IS NOT NULL
+AND (json_extract(log_tags,'$[0]') = '#git-upload-pack'
+OR json_extract(log_tags,'$[0]') = '#git-receive-pack'
+OR json_extract(log_tags,'$[0]') = '#change-abandon'
+OR json_extract(log_tags,'$[0]') = '#change-submit'
+OR json_extract(log_tags,'$[0]') = '#revision-set-review')
+GROUP BY log_tags
+ORDER BY Operations DESC
+:write-table-to -
+
+# -----------------------------------------------------
+# GET UPLOAD PACK TOTAL 
+# ------------------------------------------------------
+;SELECT 
+    CASE 
+         WHEN (SELECT message FROM gerrit_tags WHERE tag = json_extract(log_tags,'$[0]')) IS NULL THEN json_extract(log_tags,'$[0]')
+         ELSE (SELECT message FROM gerrit_tags WHERE tag = json_extract(log_tags,'$[0]'))
+     END as Action,
+    COUNT(*) as all_upload_pack
+FROM gerrit_httpd_log
+WHERE log_tags IS NOT NULL
+AND json_extract(log_tags,'$[0]') = '#git-upload-pack'
+
+# -----------------------------------------------------
+# DISPLAY NUMBERS AND PERCENTAGES OF FETCHES / CLONES (METRICS)
+# ------------------------------------------------------
+:echo
+:echo
+:echo - Fetches / clone stats FROM GERRIT METRICS
+:echo
+;SELECT ROUND(($clones_from_metrics * 100.0 / $total),2) AS clone_percent
+;SELECT ($all_upload_pack - $clones_from_metrics) AS fetches_number
+;SELECT ROUND(($fetches_number * 100.0 / $total),2) AS fetch_percent
+:echo upload-pack (FETCH) operations: $fetches_number
+:echo upload-pack (FETCH) percentage: $fetch_percent %
+:echo upload-pack (CLONE) operations: $clones_from_metrics
+:echo upload-pack (CLONE) percentage: $clone_percent %
+
+
+# -----------------------------------------------------
+# DISPLAY NUMBERS AND PERCENTAGES OF FETCHES / CLONES (EURISTICS)
+# ------------------------------------------------------
+;SELECT 
+    COUNT(*) as clones_euristics
+FROM gerrit_httpd_log
+WHERE method = 'POST'
+and log_body like '%upload-pack%'
+AND CAST(response_size AS INTEGER) > $clones_bytes
+
+:echo
+:echo
+:echo - Fetches / clone stats FROM HTTPD LOGS ONLY
+:echo
+;SELECT ($all_upload_pack - $clones_euristics) AS fetches_euristics
+:echo upload-pack (FETCH) operations: $fetches_euristics
+;SELECT ROUND(($fetches_euristics * 100.0 / $total),2) AS fetch_euristics_percent
+:echo upload-pack (FETCH) percentage: $fetch_euristics_percent %
+:echo upload-pack (CLONE) operations: $clones_euristics
+;SELECT ROUND(($clones_euristics * 100.0 / $total),2) AS clones_euristics_percent
+:echo upload-pack (CLONE) percentage: $clones_euristics_percent %
+
+
+# -----------------------------------------------------
+# WRITE FOR GRAPH
+# ------------------------------------------------------
+# ;SELECT 
+#     CASE 
+#          WHEN (SELECT message FROM gerrit_tags WHERE tag = json_extract(log_tags,'$[0]')) IS NULL THEN json_extract(log_tags,'$[0]')
+#          ELSE (SELECT message FROM gerrit_tags WHERE tag = json_extract(log_tags,'$[0]'))
+#      END as Action,
+#     COUNT(*) as Operations
+# FROM gerrit_httpd_log
+# WHERE log_tags IS NOT NULL
+# AND (json_extract(log_tags,'$[0]') = '#git-receive-pack'
+# OR json_extract(log_tags,'$[0]') = '#change-abandon'
+# OR json_extract(log_tags,'$[0]') = '#change-submit'
+# OR json_extract(log_tags,'$[0]') = '#revision-set-review')
+# GROUP BY log_tags
+# UNION SELECT 'Git-http - upload pack (fetch)' as Action, $fetches_number As Operations
+# UNION SELECT 'Git-http - upload pack (clone)' as Action, $clones_from_metrics As Operations
+# ORDER BY Action ASC
+# :write-csv-to /tmp/ghs.csv
+
+
+# ;SELECT 
+#     SUBSTRING(timeslice(log_time, $time_slice), 0, 17) AS minute,
+#     CASE 
+#          WHEN (SELECT message FROM gerrit_tags WHERE tag = json_extract(log_tags,'$[0]')) IS NULL THEN json_extract(log_tags,'$[0]')
+#          ELSE (SELECT message FROM gerrit_tags WHERE tag = json_extract(log_tags,'$[0]'))
+#      END as Action,
+#     COUNT(*) as Operations
+# FROM gerrit_httpd_log
+# WHERE log_tags IS NOT NULL
+# AND (json_extract(log_tags,'$[0]') = '#git-upload-pack'
+# OR json_extract(log_tags,'$[0]') = '#git-receive-pack'
+# OR json_extract(log_tags,'$[0]') = '#change-abandon'
+# OR json_extract(log_tags,'$[0]') = '#change-submit'
+# OR json_extract(log_tags,'$[0]') = '#revision-set-review')
+# GROUP BY minute, log_tags
+# ORDER BY minute ASC
+# :write-csv-to /tmp/ghs_timeslice.csv

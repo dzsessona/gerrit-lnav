@@ -1,5 +1,5 @@
 #
-# @description: Output a csv file representing a dataset for every operation in the httpd file(s), aggreagte by operation
+# @description: Output a csv file representing a dataset for every operation in the httpd file(s), aggregated by operation
 # @env-var: LNAV_OUTPUT_FOLDER (:-/tmp) the folder where to save the output
 # @env-var: LNAV_OUTPUT_FILE (:-/httpd_aggregate_datasets.csv) the output filename
 # @example:

@@ -264,6 +264,17 @@ Time,Request,method,status_code
 2024-11-19 16:24:41.068,/a/test/info/refs?service=git-upload-pack,GET,200 (OK)
 ```
 
+The following is an (hopefully) up-to-date summary of the headless scripts in gerrit-lnav:
+
+| Category                | Name                                          | Path                                 | Description                                                                                                                  |
+|-------------------------|-----------------------------------------------|--------------------------------------|------------------------------------------------------------------------------------------------------------------------------|
+| Playground              | playground.lnav                               | resources/default/headless           | playground                                                                                                                   |
+| Make dataset (graph)    | make_aggregate_datasets.lnav                  | resources/default/headless/httpd     | dataset for every operation in the httpd file(s), aggregated by operation                                                    |
+| Make dataset (graph)    | make_timeslice_datasets.lnav                  | resources/default/headless/httpd     | dataset for every operation in the httpd file(s), aggregated by operation, time sliced                                       |
+| Make dataset (graph)    | make_timeslice_datasets_latency_and_size.lnav | resources/default/headless/httpd     | dataset for every operation in the httpd file(s), aggregated by operation, time sliced, with latency and response size stats |
+| Rewrite log file        | rewrite_without_static.lnav                   | resources/default/headless/httpd     | rewrite the given http_log file without messages for the static calls                                                        |
+| Ghs simulation analysis | analyze_ghs_simulation.lnav                   | resources/default/headless/httpd/ghs | report with the percentages of the operation interesting for ghs real life simulation                                        |
+
 # Resources
 
 ## Lnav cheatsheet
