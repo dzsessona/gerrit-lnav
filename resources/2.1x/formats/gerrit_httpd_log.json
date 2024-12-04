@@ -1,0 +1,81 @@
+{
+  "$schema": "https://lnav.org/schemas/format-v1.schema.json",
+  "gerrit_httpd_log": {
+    "title":"Gerrit httpd_log format",
+    "description": "The httpd log tracks HTTP requests processed by Gerrit’s http daemon and is written to $site_path/logs/httpd_log. Enabled or disabled via the httpd.requestLog option.",
+    "url":"https://gerrit-documentation.storage.googleapis.com/Documentation/2.16.28/logs.html#_httpd_log",
+    "file-pattern":"httpd_log*",
+    "regex": {
+      "2.1x": {
+        "pattern": "^(?<host>([0-9]{1,3}.){3}[0-9]{1,3})[[:blank:]]-[[:blank:]](?<username>\\S+)[[:blank:]]\\[(?<timestamp>\\d{2}\\/[A-Za-z]{3}\\/\\d{4}:\\d{2}:\\d{2}:\\d{2}[[:blank:]][+-][0-9]{4})\\][[:blank:]]\\\"(?<method>[[:word:]]+)[[:blank:]](?<request>\\S+)[[:blank:]](?<protocol>[^\\\"]+)\\\"[[:blank:]](?<status_code>\\d+)[[:blank:]](?<response_size>(-)|\\d+)[[:blank:]](?<referer>(-)|\"\\S+\")[[:blank:]](?<client_agent>-|((\\\")?[^\\\"]*(\\\")?))$"
+      }
+    },
+    "body-field": "request",
+    "timestamp-field": "timestamp",
+    "level-field": "status_code",
+    "level": {
+      "error": "^[45].*",
+      "warning": "^3.*"
+    },
+    "value": {
+      "client_agent": {
+        "kind": "string"
+      },
+      "command_status": {
+        "kind": "string"
+      },
+      "host": {
+        "kind": "string",
+        "hidden":true
+      },
+      "latency": {
+        "kind": "string"
+      },
+      "memory": {
+        "kind": "string"
+      },
+      "method": {
+        "kind": "string",
+        "identifier": true
+      },
+      "protocol": {
+        "kind": "string"
+      },
+      "referer": {
+        "kind": "string"
+      },
+      "request": {
+        "kind": "string"
+      },
+      "response_size": {
+        "kind": "string"
+      },
+      "status_code": {
+        "kind": "integer",
+        "identifier": true
+      },
+      "thread": {
+        "kind": "string",
+        "hidden":true
+      },
+      "timestamp": {
+        "kind": "string"
+      },
+      "total_cpu": {
+        "kind": "string"
+      },
+      "user_cpu": {
+        "kind": "string"
+      },
+      "username": {
+        "kind": "string",
+        "identifier": true
+      }
+    },
+    "sample": [
+      {
+        "line": "172.17.53.10 - auser [15/Sep/2024:00:00:01 +0200] \"GET /gerrit/bla.src/info/refs?service=git-upload-pack HTTP/1.1\" 200 3773435 - \"git/2.46.0\""
+      }
+    ]
+  }
+}
