@@ -1,0 +1,119 @@
+{
+  "$schema": "https://lnav.org/schemas/format-v1.schema.json",
+  "gerrit_sshd_log": {
+    "title":"Gerrit sshd_log format",
+    "description": "The sshd log tracks ssh requests processed by Gerrit’s ssh daemon and is written to $site_path/logs/sshd_log. Enabled or disabled via option sshd.requestLog.",
+    "url":"https://gerrit-review.googlesource.com/Documentation/logs.html#_sshd_log",
+    "file-pattern":"sshd_log*",
+    "regex": {
+      "std": {
+        "pattern": "^\\[(?<timestamp>\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{3,6}))(?:Z|([\\+\\-]\\d{2}:\\d{2}))?\\][[:blank:]](?<session_id>\\S+)[[:blank:]]\\[(?<thread>.+)\\][[:blank:]](?<username>\\S+)[[:blank:]]a\\/(?<account_id>[\\S]+)[[:blank:]](?<operation>\\S+)[[:blank:]](?<wait>\\S+)[[:blank:]](?<exec>\\S+)[[:blank:]]-[[:blank:]](?<status>\\d+)[[:blank:]](?<client_agent>\\S+)[[:blank:]](?<total_cpu>\\S+)[[:blank:]](?<user_cpu>\\S+)[[:blank:]](?<memory>(-)?\\d+)$"
+      },
+      "login": {
+        "pattern": "^\\[(?<timestamp>\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{3,6}))(?:Z|([\\+\\-]\\d{2}:\\d{2}))?\\][[:blank:]](?<session_id>\\S+)[[:blank:]]\\[(?<thread>.+)\\][[:blank:]](?<username>\\S+)[[:blank:]]a\\/(?<account_id>[\\S]+)[[:blank:]](?<operation>(LOGOUT)|(LOGIN FROM).*)$"
+      },
+      "upload-pack" :{
+        "pattern": "^\\[(?<timestamp>\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{3,6}))(?:Z|([\\+\\-]\\d{2}:\\d{2}))?\\][[:blank:]](?<session_id>\\S+)[[:blank:]]\\[(?<thread>.+)\\][[:blank:]](?<username>\\S+)[[:blank:]]a\\/(?<account_id>[\\S]+)[[:blank:]](?<operation>git-upload-pack.(\\S)*)[[:blank:]](?<wait>\\S+)[[:blank:]](?<exec>\\S+)[[:blank:]]'(?<time_negotiating>\\S+)[[:blank:]](?<time_searching_for_reuse>\\S+)[[:blank:]](?<time_searching_for_sizes>\\S+)[[:blank:]](?<time_counting>\\S+)[[:blank:]](?<time_compressing>\\S+)[[:blank:]](?<time_writing>\\S+)[[:blank:]](?<total_time_in_uploadpack>\\S+)[[:blank:]](?<bitmap_index_misses>(-1)|\\d+)[[:blank:]](?<total_deltas>(-1)|\\d+)[[:blank:]](?<total_objects>(-1)|\\d+)[[:blank:]](?<total_bytes>(-1)|\\d+)'[[:blank:]](?<status>\\d+)[[:blank:]](?<client_agent>\\S+)[[:blank:]](?<total_cpu>\\S+)[[:blank:]](?<user_cpu>\\S+)[[:blank:]](?<memory>\\d+)$"
+      }
+    },
+    "opid-field": "session_id",
+    "body-field": "operation",
+    "level-field": "status",
+    "level": {
+      "info": "0",
+      "error": "^[^0]"
+    },
+    "value": {
+      "account_id": {
+        "kind": "string"
+      },
+      "bitmap_index_misses": {
+        "kind": "string"
+      },
+      "client_agent": {
+        "kind": "string"
+      },
+      "exec": {
+        "kind": "string"
+      },
+      "memory": {
+        "kind": "string"
+      },
+      "operation": {
+        "kind": "string"
+      },
+      "session_id": {
+        "kind": "string",
+        "identifier": true
+      },
+      "status": {
+        "kind": "string"
+      },
+      "thread": {
+        "kind": "string"
+      },
+      "time_compressing": {
+        "kind": "string",
+        "hidden":true
+      },
+      "time_counting": {
+        "kind": "string",
+        "hidden":true
+      },
+      "time_negotiating": {
+        "kind": "string",
+        "hidden":true
+      },
+      "time_searching_for_reuse": {
+        "kind": "string",
+        "hidden":true
+      },
+      "time_searching_for_sizes": {
+        "kind": "string",
+        "hidden":true
+      },
+      "time_writing": {
+        "kind": "string",
+        "hidden":true
+      },
+      "timestamp": {
+        "kind": "string"
+      },
+      "total_bytes": {
+        "kind": "string"
+      },
+      "total_cpu": {
+        "kind": "string"
+      },
+      "total_deltas": {
+        "kind": "string"
+      },
+      "total_objects": {
+        "kind": "string"
+      },
+      "total_time_in_uploadpack": {
+        "kind": "string"
+      },
+      "user_cpu": {
+        "kind": "string"
+      },
+      "username": {
+        "kind": "string"
+      },
+      "wait": {
+        "kind": "string"
+      }
+    },
+    "sample": [
+      {
+        "line": "[2024-09-25T03:45:26.751Z] c11f7a4e [SshCommandDestroy-0] su-zuul a/1000004 gerrit.stream-events 0ms 44175599ms - 0 - 0ms 0ms -96712"
+      },{
+        "line": "[2024-09-25T03:45:26.750Z] c11f7a4e [sshd-SshDaemon[7c1ae95](port=22)-nio2-thread-3] su-zuul a/1000004 LOGOUT"
+      },{
+        "line": "[2024-09-25T06:11:48.114Z] a79a7b89 [sshd-SshDaemon[7c1ae95](port=22)-nio2-thread-4] su-zuul a/1000004 LOGIN FROM 127.0.0.6"
+      },{
+        "line": "[2024-03-06T00:00:00.036-08:00] 111da1f4 [SSH git-upload-pack component-manifest (evo-builder)] evo-builder a/1000121 git-upload-pack.component-manifest 2ms 45288ms '11668ms 75ms 0ms 32679ms 0ms 9ms 32763ms 70240 158 563 258749' 0 git/2.11.0 26415ms 25890ms 29220858784"
+      }
+    ]
+  }
+}

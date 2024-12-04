@@ -1,0 +1,60 @@
+{
+  "$schema": "https://lnav.org/schemas/format-v1.schema.json",
+  "gerrit_error_log": {
+    "title":"Gerrit error_log format",
+    "description":"The error log tracks errors and stack traces and is written to $site_path/logs/error_log",
+    "url":"https://gerrit-review.googlesource.com/Documentation/logs.html#_error_log",
+    "file-pattern":"error_log*",
+    "regex": {
+      "std": {
+        "pattern": "^\\[(?<timestamp>\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{3,6}))(?:Z|([\\+\\-]\\d{2}:\\d{2}))?\\][[:blank:]]\\[(?<thread>.*)\\][[:blank:]](?<level>[[:word:]]+)[[:blank:]](?<logger>(.)*)[[:blank:]]:[[:blank:]](?<message>((.*)(\\r?\\n(?!\\[).*)*))"
+      }
+    },
+    "timestamp-field": "timestamp",
+    "body-field": "message",
+    "level-field": "level",
+    "level": {
+      "error": "ERROR",
+      "warning": "WARN",
+      "debug": "DEBUG",
+      "info": "INFO",
+      "trace": "TRACE"
+    },
+    "value": {
+      "level": {
+        "kind": "string"
+      },
+      "logger": {
+        "kind": "string",
+        "identifier": true
+      },
+      "thread": {
+        "kind": "string",
+        "hidden":true
+      },
+      "timestamp": {
+        "kind": "string"
+      },
+      "message": {
+        "kind": "quoted"
+      }
+    },
+    "sample": [
+      {
+        "line": "[2024-09-25T00:02:35.666Z] [pool-38-thread-10] WARN  org.eclipse.jgit.internal.storage.file.PackDirectory : Pack file /var/gerrit/git/All-Projects.git/objects/pack/pack-5dc720272a6d3ec4d18147025d2cb1653440246d.pack was deleted, removing it from pack list\njava.io.FileNotFoundException: /var/gerrit/git/All-Projects.git/objects/pack/pack-5dc720272a6d3ec4d18147025d2cb1653440246d.pack (No such file or directory)\n\tat java.base/java.io.RandomAccessFile.open0(Native Method)\n\tat java.base/java.io.RandomAccessFile.open(RandomAccessFile.java:345)\n[2024-09-25T00:02:35.666Z] [pool-38-thread-10] WARN  org.eclipse.jgit.internal.storage.file.PackDirectory : Pack file /var/gerrit/git/All-Projects.git/objects/pack/pack-5dc720272a6d3ec4d18147025d2cb1653440246d.pack was deleted, removing it from pack list\njava.io.FileNotFoundException: /var/gerrit/git/All-Projects.git/objects/pack/pack-5dc720272a6d3ec4d18147025d2cb1653440246d.pack (No such file or directory)\n\tat java.base/java.io.RandomAccessFile.open0(Native Method)\n\tat java.base/java.io.RandomAccessFile.open(RandomAccessFile.java:345)\n[2024-09-25T00:02:35.666Z] [pool-38-thread-10] WARN  org.eclipse.jgit.internal.storage.file.PackDirectory : Pack file /var/gerrit/git/All-Projects.git/objects/pack/pack-5dc720272a6d3ec4d18147025d2cb1653440246d.pack was deleted, removing it from pack list\njava.io.FileNotFoundException: /var/gerrit/git/All-Projects.git/objects/pack/pack-5dc720272a6d3ec4d18147025d2cb1653440246d.pack (No such file or directory)\n\tat java.base/java.io.RandomAccessFile.open0(Native Method)\n\tat java.base/java.io.RandomAccessFile.open(RandomAccessFile.java:345)\n[2024-09-25T00:02:35.666Z] [pool-38-thread-10] WARN  org.eclipse.jgit.internal.storage.file.PackDirectory : Pack file /var/gerrit/git/All-Projects.git/objects/pack/pack-5dc720272a6d3ec4d18147025d2cb1653440246d.pack was deleted, removing it from pack list\njava.io.FileNotFoundException: /var/gerrit/git/All-Projects.git/objects/pack/pack-5dc720272a6d3ec4d18147025d2cb1653440246d.pack (No such file or directory)\n\tat java.base/java.io.RandomAccessFile.open0(Native Method)\n\tat java.base/java.io.RandomAccessFile.open(RandomAccessFile.java:345)"
+      }
+    ],
+    "highlights" : {
+      "caused" : {
+        "pattern" : "^Caused by:",
+        "color" : "LightSteelBlue1",
+        "underline": true
+      },
+      "at" : {
+        "pattern" : "^\\s+at",
+        "color" : "LightSteelBlue1"
+      }
+    }
+  }
+}
+
