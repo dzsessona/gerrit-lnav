@@ -42,7 +42,7 @@ Press `q` to exit lnav.
 1. Clone the [gerrit_lnav repository](https://github.com/dzsessona/gerrit-lnav)
 2. Cd into the cloned repository
 3. Run the installer script `install.sh`
-4. The first time installing it will ask also to install depnedencies for csv2json. csv2json is required only when using lnav to build graphs.
+4. The first time installing it will ask also to install dependencies for csv2json. csv2json is required only when using lnav to build graphs.
 
 ```shell
 git clone "git@github.com:dzsessona/gerrit-lnav.git" && \
