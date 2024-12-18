@@ -1,0 +1,37 @@
+# @description: Rewrite the given error_log file with messages matching the level
+# @env-var: LNAV_OUTPUT_FOLDER (:-/tmp) the folder where the output file will be generated
+# @env-var: LNAV_LOG_LEVEL (:-error) the error level of the logs
+# @note: the new error_log file will have the same name of the file analyzed, with the '.reduced.$LNAV_LOG_LEVEL' suffix
+# @example:
+#   LNAV_OUTPUT_FOLDER=/tmp \
+#   LNAV_LOG_LEVEL=error \
+#   lnav -q \
+#   -n ~/gerrit/logs/error_log \
+#   -f ~/repositories/gerrit-lnav/resources/default/headless/error/reduce_to_level.lnav
+
+# ------------------------------------------
+# GET params
+# ------------------------------------------
+;SELECT CASE
+    WHEN $LNAV_OUTPUT_FOLDER IS NULL THEN '/tmp'
+    ELSE $LNAV_OUTPUT_FOLDER
+    END AS out_folder
+
+;SELECT CASE
+    WHEN $LNAV_LOG_LEVEL IS NULL THEN 'error'
+    ELSE $LNAV_LOG_LEVEL
+    END AS level
+
+# ------------------------------------------
+# Work out filename from logs, used for output
+# ------------------------------------------
+;SELECT log_path AS filepath FROM gerrit_error_log LIMIT 1
+;SELECT CHARINDEX('/', REVERSE($filepath)) AS last_slash
+;SELECT REVERSE(SUBSTRING(REVERSE($filepath), 0, $last_slash)) AS filename
+
+# ------------------------------------------
+# MARK everything except matching level
+# ------------------------------------------
+:reset-session
+:mark-expr :log_level = $level
+:write-raw-to $out_folder/$filename.reduced.$level
