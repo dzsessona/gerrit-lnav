@@ -7,26 +7,41 @@
     "file-pattern":"error_log*",
     "regex": {
       "std": {
-        "pattern": "^\\[(?<timestamp>\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{3,6}))(?:Z|([\\+\\-]\\d{2}:\\d{2}))?\\][[:blank:]]\\[(?<thread>.*)\\][[:blank:]](?<level>[[:word:]]+)[[:blank:]](?<logger>(.)*)[[:blank:]]:[[:blank:]](?<message>((.*)(\\r?\\n(?!\\[).*)*))"
+        "pattern": "^\\[(?<timestamp>\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{3,6})?)(?:Z|(?<timezone>[\\+\\-]\\d{2}:\\d{2}))?\\]\\s\\[(?<thread>.*?)\\]\\s(?<level>\\w+)(?:\\s)*(?<logger>.*?)\\s:\\s(?<message>(?<msg>[^\\n\\r]*))(?:\\r?\\n(?!\\[)(?<first_stack_class>[\\w.]+)(?::\\s(?<first_stack_msg>[^\\n\\r]*))?)?(?:(?:\\r?\\n(?!\\[)(?!Caused)[^\\n\\r]*)*(?:\\r?\\n(?:Caused\\sby:\\s(?<caused_by_class>[\\w.]+)(?::\\s(?<caused_by_msg>[^\\n\\r]*))?))+)*(?:\\r?\\n(?!\\[)(.)*)*"
       }
     },
     "timestamp-field": "timestamp",
     "body-field": "message",
     "level-field": "level",
     "level": {
-      "error": "ERROR",
+      "error": "ERROR|fetch",
       "warning": "WARN",
       "debug": "DEBUG",
       "info": "INFO",
       "trace": "TRACE"
     },
     "value": {
+      "caused_by_class": {
+        "kind": "string"
+      },
+      "caused_by_msg": {
+        "kind": "string"
+      },
+      "first_stack_class": {
+        "kind": "string"
+      },
+      "first_stack_msg": {
+        "kind": "string"
+      },
       "level": {
         "kind": "string"
       },
       "logger": {
         "kind": "string",
         "identifier": true
+      },
+      "message": {
+        "kind": "string"
       },
       "thread": {
         "kind": "string",
@@ -35,13 +50,19 @@
       "timestamp": {
         "kind": "string"
       },
-      "message": {
-        "kind": "quoted"
+      "timezone": {
+        "kind": "string"
       }
     },
     "sample": [
       {
-        "line": "[2024-09-25T00:02:35.666Z] [pool-38-thread-10] WARN  org.eclipse.jgit.internal.storage.file.PackDirectory : Pack file /var/gerrit/git/All-Projects.git/objects/pack/pack-5dc720272a6d3ec4d18147025d2cb1653440246d.pack was deleted, removing it from pack list\njava.io.FileNotFoundException: /var/gerrit/git/All-Projects.git/objects/pack/pack-5dc720272a6d3ec4d18147025d2cb1653440246d.pack (No such file or directory)\n\tat java.base/java.io.RandomAccessFile.open0(Native Method)\n\tat java.base/java.io.RandomAccessFile.open(RandomAccessFile.java:345)\n[2024-09-25T00:02:35.666Z] [pool-38-thread-10] WARN  org.eclipse.jgit.internal.storage.file.PackDirectory : Pack file /var/gerrit/git/All-Projects.git/objects/pack/pack-5dc720272a6d3ec4d18147025d2cb1653440246d.pack was deleted, removing it from pack list\njava.io.FileNotFoundException: /var/gerrit/git/All-Projects.git/objects/pack/pack-5dc720272a6d3ec4d18147025d2cb1653440246d.pack (No such file or directory)\n\tat java.base/java.io.RandomAccessFile.open0(Native Method)\n\tat java.base/java.io.RandomAccessFile.open(RandomAccessFile.java:345)\n[2024-09-25T00:02:35.666Z] [pool-38-thread-10] WARN  org.eclipse.jgit.internal.storage.file.PackDirectory : Pack file /var/gerrit/git/All-Projects.git/objects/pack/pack-5dc720272a6d3ec4d18147025d2cb1653440246d.pack was deleted, removing it from pack list\njava.io.FileNotFoundException: /var/gerrit/git/All-Projects.git/objects/pack/pack-5dc720272a6d3ec4d18147025d2cb1653440246d.pack (No such file or directory)\n\tat java.base/java.io.RandomAccessFile.open0(Native Method)\n\tat java.base/java.io.RandomAccessFile.open(RandomAccessFile.java:345)\n[2024-09-25T00:02:35.666Z] [pool-38-thread-10] WARN  org.eclipse.jgit.internal.storage.file.PackDirectory : Pack file /var/gerrit/git/All-Projects.git/objects/pack/pack-5dc720272a6d3ec4d18147025d2cb1653440246d.pack was deleted, removing it from pack list\njava.io.FileNotFoundException: /var/gerrit/git/All-Projects.git/objects/pack/pack-5dc720272a6d3ec4d18147025d2cb1653440246d.pack (No such file or directory)\n\tat java.base/java.io.RandomAccessFile.open0(Native Method)\n\tat java.base/java.io.RandomAccessFile.open(RandomAccessFile.java:345)"
+        "line": "[2024-12-06T23:36:05.483Z] [HTTP POST /a/xxx-hostconfig/git-upload-pack (xxx from 10.66.25.245)] ERROR com.google.gerrit.httpd.GitOverHttpServlet.GerritUploadPackErrorHandler : Internal error during upload-pack from Repository[/home/gerrit/gerrit-repos/git/xxx-hostconfig.git] [CONTEXT project=\"xxx-hostconfig\" request=\"GIT_UPLOAD\" ]\norg.eclipse.jgit.transport.WantNotValidException: want c4a5fc5faa7756deff6081b90fc90d67395fbb31 not valid\n       at org.eclipse.jgit.transport.UploadPack.checkNotAdvertisedWants(UploadPack.java:2146)\n       at org.eclipse.jgit.transport.UploadPack$ReachableCommitRequestValidator.checkWants(UploadPack.java:2016)\norg.eclipse.jetty.server.handler.RequestLogHandler.handle(RequestLogHandler.java:54)\n       at org.eclipse.jetty.util.thread.QueuedThreadPool.runJob(QueuedThreadPool.java:883)\n       at org.eclipse.jetty.util.thread.QueuedThreadPool$Runner.run(QueuedThreadPool.java:1034)\n       at java.base/java.lang.Thread.run(Thread.java:840)\nCaused by: org.eclipse.jgit.errors.MissingObjectException: Missing unknown c4a5fc5faa7756deff6081b90fc90d67395fbb31\n       at org.eclipse.jgit.internal.storage.file.WindowCursor.open(WindowCursor.java:137)\n       at \nCaused by: org.eclipse.jgit.errors.MissingObjectException: Missing unknown c4a5fc5faa7756deff6081b90fc90d67395fbb31\n       at org.eclipse.jgit.internal.storage.file.WindowCursor.open(WindowCursor.java:137)\n       at org.eclipse.jgit.lib.ObjectReader.open(ObjectReader.java:216)\n       at org.eclipse.jgit.revwalk.RevWalk.parseAny(RevWalk.java:1144)\n       at org.eclipse.jgit.transport.UploadPack.objectIdsToRevObjects(UploadPack.java:2228)\n       at \norg.eclipse.jgit.transport.UploadPack.checkNotAdvertisedWants(UploadPack.java:2083)\n       ... 102 more"
+      },
+      {
+        "line": "[2024-12-06T22:19:42.997Z] [kafka-subscriber-4[com.googlesource.gerrit.plugins.kafka.subscribe.KafkaEventNativeSubscriber$ReceiverJob@5840413c]] WARN  com.googlesource.gerrit.plugins.multisite.forwarder.ForwardedIndexChangeHandler : change xxx~46383 is not up-to-date. Rescheduling"
+      },
+      {
+        "line": "[2024-12-06T22:20:48.985Z] [HTTP POST /ahv.git/git-upload-pack (xxx from 10.43.255.2)] ERROR com.google.gerrit.httpd.GitOverHttpServlet.GerritUploadPackErrorHandler : Internal error during upload-pack from Repository[/home/gerrit/gerrit-repos/git/xxx.git] [CONTEXT project=\"ahv\" request=\"GIT_UPLOAD\" ]\norg.eclipse.jgit.transport.WantNotValidException: want ee7c010668c98aa6f9776fd4b3de8172caf9ebae not valid\n       at org.eclipse.jgit.transport.UploadPack.checkNotAdvertisedWants(UploadPack.java:2124)\n       at org.eclipse.jetty.util.thread.QueuedThreadPool.runJob(QueuedThreadPool.java:883)\n       at org.eclipse.jetty.util.thread.QueuedThreadPool$Runner.run(QueuedThreadPool.java:1034)\n       at java.base/java.lang.Thread.run(Thread.java:840)"
       }
     ],
     "highlights" : {
@@ -57,4 +78,3 @@
     }
   }
 }
-
