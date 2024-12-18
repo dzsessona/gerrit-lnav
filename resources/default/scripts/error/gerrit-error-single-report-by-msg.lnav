@@ -1,0 +1,68 @@
+#
+# @synopsis: gerrit-error-single-report-by-msg [pattern] [time-slice] <error|warning|debug|info|trace>
+# @description: show a report of logs matching the level passed (error by default), grouped by the cause class
+#
+
+# ------------------------------------------
+# GET PARAMETERS
+# ------------------------------------------
+;SELECT CONCAT("'%", $1, "%'") AS pattern
+
+;SELECT CONCAT("'", $2, "'") AS time_slice
+
+;SELECT CASE
+    WHEN $3 IS NULL THEN "'error'"
+    ELSE CONCAT("'", $3, "'")
+    END AS level
+
+# ------------------------------------------
+# GET TOTAL MESSAGES
+# ------------------------------------------
+:eval ;SELECT COUNT(*) AS total FROM gerrit_error_log WHERE log_level = $level
+
+
+# ------------------------------------------
+# SAMPLE MESSAGES
+# ------------------------------------------
+:echo
+:echo
+:echo - ERROR_LOG exmple of messages with message pattern: $pattern (reduced)
+:echo sample with the pattern matched in the 'Reporter' message
+:eval ;SELECT REGEXP_REPLACE(log_text, '\\n\\s*at[^\\n]*', '') AS Message
+    FROM gerrit_error_log
+    WHERE log_level = $level AND log_body LIKE $pattern
+    LIMIT 1
+:write-table-to -
+:echo
+:echo sample with the pattern matched in the first 'StackTrace'
+:eval ;SELECT REGEXP_REPLACE(log_text, '\\n\\s*at[^\\n]*', '') AS Message
+    FROM gerrit_error_log
+    WHERE log_level = $level AND first_stack_msg LIKE $pattern
+    LIMIT 1
+:write-table-to -
+:echo
+:echo sample with the pattern matched in the last 'Caused by'
+:eval ;SELECT REGEXP_REPLACE(log_text, '\\n\\s*at[^\\n]*', '') AS Message
+    FROM gerrit_error_log
+    WHERE log_level = $level AND caused_by_msg LIKE $pattern
+    LIMIT 1
+:write-table-to -
+
+# ------------------------------------------
+# DISPLAY ON SCREEN DISTRIBUTION
+# ------------------------------------------
+:echo
+:echo
+:echo - ERROR_LOG distribution of messages with message pattern: $pattern
+:eval ;SELECT 
+    SUBSTRING(timeslice(log_time, $time_slice), 0, 17) AS minute,
+    COUNT(*) as Total
+FROM gerrit_error_log
+WHERE 
+  log_level = $level AND
+  ( log_body LIKE $pattern OR 
+    caused_by_msg LIKE $pattern OR
+    first_stack_msg LIKE $pattern )
+GROUP BY minute
+ORDER BY minute ASC
+:write-table-to -
