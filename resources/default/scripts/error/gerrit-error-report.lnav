@@ -1,0 +1,106 @@
+#
+# @synopsis: gerrit-error-report <time-slice> [error|warning|debug|info|trace]
+# @description: show a report of logs matching the level passed (error by default)
+#
+
+# ------------------------------------------
+# CHECK PARAM TO GET LOG_LEVEL WANTED
+# ------------------------------------------
+;SELECT CONCAT("'", $1, "'") AS time_slice
+
+;SELECT CASE
+    WHEN $2 IS NULL THEN "'error'"
+    ELSE CONCAT("'", $2, "'")
+    END AS level
+
+# ------------------------------------------
+# GET TOTAL MESSAGES
+# ------------------------------------------
+:eval ;SELECT COUNT(*) AS total FROM gerrit_error_log WHERE log_level = $level
+
+# ------------------------------------------
+# DISPLAY ON SCREEN ERRORS BY LOGGER, CAUSES
+# ------------------------------------------
+:echo
+:echo
+:echo - ERROR_LOG summary by logger (total $level: $total)
+:eval ;SELECT
+    COUNT(*) as Occurrences,
+    ROUND((COUNT(*)* 100.0 / $total),2) AS '% of total',
+    logger as Logger
+FROM gerrit_error_log
+WHERE log_level = $level
+GROUP BY logger
+ORDER BY Occurrences DESC
+LIMIT 20
+:write-table-to -
+
+:echo
+:echo
+:echo - ERROR_LOG summary by cause (total $level: $total)
+:eval ;WITH RECURSIVE errors_with_cause AS (SELECT 
+	logger,
+    CASE
+         WHEN caused_by_class IS NOT NULL THEN caused_by_class
+         WHEN caused_by_class IS NULL AND first_stack_class IS NOT NULL THEN first_stack_class
+         ELSE logger
+    END as Class
+  FROM gerrit_error_log 
+  WHERE log_level = $level)
+SELECT 
+  COUNT(*) as Occurrences,
+  ROUND((COUNT(*)* 100.0 / $total),2) AS '% of total',
+  Class as 'Caused by class'
+FROM errors_with_cause 
+GROUP BY Class
+ORDER BY Occurrences DESC
+LIMIT 20
+:write-table-to -
+
+# ------------------------------------------
+# MOST COMMON CAUSES MESSAGES
+# ------------------------------------------
+:echo
+:echo
+:echo - ERROR_LOG most common messages pattern found
+:echo   note: sha and number are replaced with %, so that the pattern can be used in other scripts
+:eval ;WITH RECURSIVE causes_msg AS 
+( SELECT
+      logger As Logger,
+	  REGEXP_REPLACE(REGEXP_REPLACE(caused_by_msg, '\\b[a-fA-F0-9]{10,}\\b', '%'), '\\d{4,}', '%') as 'Msg'
+    FROM gerrit_error_log
+    WHERE caused_by_msg IS NOT NULL AND log_level = $level
+  UNION ALL SELECT
+      logger As Logger,
+      REGEXP_REPLACE(REGEXP_REPLACE(first_stack_msg, '\\b[a-fA-F0-9]{10,}\\b', '%'), '\\d{4,}', '%') as 'Msg'
+    FROM gerrit_error_log
+    WHERE first_stack_msg IS NOT NULL AND log_level = $level
+  UNION ALL SELECT
+      logger As Logger,
+      REGEXP_REPLACE(REGEXP_REPLACE(log_body, '\\b[a-fA-F0-9]{10,}\\b', '%'), '\\d{4,}', '%') as 'Msg'
+    FROM gerrit_error_log
+    WHERE log_body IS NOT NULL AND log_level = $level)
+SELECT
+    COUNT(*) as Occurrences,
+	Msg AS Message
+FROM causes_msg
+GROUP BY Message
+ORDER BY Occurrences DESC
+LIMIT 20
+:write-table-to -
+
+# ------------------------------------------
+# DISPLAY ON SCREEN DISTRIBUTION
+# ------------------------------------------
+:echo
+:echo
+:echo - ERROR_LOG distribution of all messages with level: $level
+:eval ;SELECT 
+    SUBSTRING(timeslice(log_time, $time_slice), 0, 17) AS minute,
+    COUNT(*) as Total
+FROM gerrit_error_log
+WHERE 
+  log_level = $level
+GROUP BY minute
+ORDER BY minute ASC
+:write-table-to -
