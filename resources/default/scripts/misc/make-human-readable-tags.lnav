@@ -8,9 +8,12 @@
     message TEXT
 );
 ;INSERT OR IGNORE INTO gerrit_tags(tag, message) VALUES
-    -- Git
+    -- Git HTTP
     ('#git-upload-pack'                 ,'GIT-http - upload pack'),
     ('#git-receive-pack'                ,'GIT-http - receive pack'),
+    -- Git SSH
+    ('#git-ssh-upload-pack'             ,'GIT-ssh - upload pack'),
+    ('#git-ssh-receive-pack'            ,'GIT-ssh - receive pack'),
     -- Static content
     ('#static-fonts'                    ,'STATIC-CONTENT - fonts'),
     ('#static-bower'                    ,'STATIC-CONTENT - bower'),
@@ -126,4 +129,56 @@
     -- Rest groups - reads
     ('#groups-read'                     ,'REST-groups - read operations'),
     -- Rest projects - reads
-    ('#projects-read'                   ,'REST-projects - read operations')
+    ('#projects-read'                   ,'REST-projects - read operations'),
+    -- SSH User Commands
+    ('#ssh-apropos'                     ,'SSH-user-cmd - apropos'),
+    ('#ssh-ban-commit'                  ,'SSH-user-cmd - ban commit'),
+    ('#ssh-check-project-access'        ,'SSH-user-cmd - check project access'),
+    ('#ssh-create-branch'               ,'SSH-user-cmd - create branch'),
+    ('#ssh-ls-groups'                   ,'SSH-user-cmd - ls groups'),
+    ('#ssh-ls-members'                  ,'SSH-user-cmd - ls members'),
+    ('#ssh-ls-projects'                 ,'SSH-user-cmd - ls projects'),
+    ('#ssh-query'                       ,'SSH-user-cmd - query'),
+    ('#ssh-rename-group'                ,'SSH-user-cmd - rename group'),
+    ('#ssh-review'                      ,'SSH-user-cmd - review'),
+    ('#ssh-set-head'                    ,'SSH-user-cmd - set head'),
+    ('#ssh-set-project'                 ,'SSH-user-cmd - set project'),
+    ('#ssh-set-project-parent'          ,'SSH-user-cmd - set project parent'),
+    ('#ssh-set-reviewers'               ,'SSH-user-cmd - set reviewers'),
+    ('#ssh-set-topic'                   ,'SSH-user-cmd - set topic'),
+    ('#ssh-stream-events'               ,'SSH-user-cmd - stream events'),
+    ('#ssh-version'                     ,'SSH-user-cmd - version'),
+    -- Administrator Commands
+    ('#ssh-close-connection'            ,'SSH-admin-cmd - close connection'),
+    ('#ssh-show-queue'                  ,'SSH-admin-cmd - show queue'),
+    ('#ssh-convert-ref-storage'         ,'SSH-admin-cmd - convert ref storage'),
+    ('#ssh-create-account'              ,'SSH-admin-cmd - create account'),
+    ('#ssh-create-group'                ,'SSH-admin-cmd - create group'),
+    ('#ssh-create-project'              ,'SSH-admin-cmd - create project'),
+    ('#ssh-flush-caches'                ,'SSH-admin-cmd - flush caches'),
+    ('#ssh-gc'                          ,'SSH-admin-cmd - gc'),
+    ('#ssh-index-activate'              ,'SSH-admin-cmd - index activate'),
+    ('#ssh-index-start'                 ,'SSH-admin-cmd - index start'),
+    ('#ssh-index-changes'               ,'SSH-admin-cmd - index changes'),
+    ('#ssh-index-changes-in-project'    ,'SSH-admin-cmd - index changes in project'),
+    ('#ssh-logging-ls'                  ,'SSH-admin-cmd - logging ls'),
+    ('#ssh-logging-set'                 ,'SSH-admin-cmd - logging set'),
+    ('#ssh-ls-user-refs'                ,'SSH-admin-cmd - ls user refs'),
+    ('#ssh-migrate-ext-2-insensitive'   ,'SSH-admin-cmd - migrate externalids to insensitive'),
+    ('#ssh-plugin-add'                  ,'SSH-admin-cmd - plugin add'),
+    ('#ssh-plugin-enable'               ,'SSH-admin-cmd - plugin enable'),
+    ('#ssh-plugin-ls'                   ,'SSH-admin-cmd - plugin ls'),
+    ('#ssh-plugin-reload'               ,'SSH-admin-cmd - plugin reload'),
+    ('#ssh-plugin-remove'               ,'SSH-admin-cmd - plugin remove'),
+    ('#ssh-reload-config'               ,'SSH-admin-cmd - reload config'),
+    ('#ssh-set-account'                 ,'SSH-admin-cmd - set account'),
+    ('#ssh-sequence-set'                ,'SSH-admin-cmd - sequence set'),
+    ('#ssh-sequence-show'               ,'SSH-admin-cmd - sequence show'),
+    ('#ssh-set-members'                 ,'SSH-admin-cmd - set members'),
+    ('#ssh-show-caches'                 ,'SSH-admin-cmd - show caches'),
+    ('#ssh-show-connections'            ,'SSH-admin-cmd - show connections'),
+    ('#ssh-show-queue'                  ,'SSH-admin-cmd - show queue'),
+    ('#ssh-test-submit-type'            ,'SSH-admin-cmd - test submit type'),
+    ('#ssh-test-submit-rule'            ,'SSH-admin-cmd - test submit rule'),
+    ('#ssh-kill'                        ,'SSH-admin-cmd - kill'),
+    ('#ssh-suexec'                      ,'SSH-admin-cmd - su exec')

@@ -1,0 +1,27 @@
+#
+# @synopsis: gerrit-sshd-most-users [<start-time> <end-time>]
+# @description: most active ssh users, optionally between two dates ('YYYY-MM-DD HH:MM:SS')
+#
+
+# ------------------------------------------
+# GET PARAMETERS
+# ------------------------------------------
+;SELECT CASE
+    WHEN ($1 IS NOT NULL AND $2 IS NOT NULL) THEN CONCAT("AND log_time BETWEEN '", $1, "' AND '",  $2, "'")
+    ELSE ''
+    END AS time_filter
+
+# ------------------------------------------
+# GET MOST ACTIVE USERS
+# ------------------------------------------
+:echo
+:echo Simple example of selecting the first 10 log entries from the httpd_log:
+:eval ;SELECT
+    username,
+    COUNT (*) as Operations
+FROM gerrit_sshd_log
+WHERE (log_body NOT LIKE 'LOGIN%' OR  log_body NOT LIKE 'LOGOUT%')
+$time_filter
+GROUP BY username
+ORDER BY Operations DESC
+:write-table-to -

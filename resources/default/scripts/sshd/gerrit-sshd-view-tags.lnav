@@ -1,0 +1,74 @@
+#
+# @synopsis: gerrit-sshd-view-tags [username]
+# @description: Show tagged operations summary
+#
+
+# ------------------------------------------
+# Check param to filter by username
+# ------------------------------------------
+;SELECT CASE
+    WHEN $1 IS NULL THEN 'No'
+    ELSE $1
+    END AS user
+
+;SELECT CASE
+    WHEN $1 IS NULL THEN ''
+    ELSE CONCAT("AND username = '", $1, "'")
+    END AS and_user_filter
+
+;SELECT CASE
+    WHEN $1 IS NULL THEN ''
+    ELSE CONCAT("WHERE username = '", $1, "'")
+    END AS where_user_filter
+
+# ------------------------------------------
+# CREATE ON THE FLY TABLE FOR TAGS
+# ------------------------------------------
+|make-human-readable-tags
+
+# ------------------------------------------
+# GET TOTALS (OPERATION AND ALL LOGS)
+# ------------------------------------------
+:eval ;SELECT COUNT(*) AS total FROM gerrit_sshd_log WHERE log_tags IS NOT NULL $and_user_filter
+:eval ;SELECT COUNT(*) AS grand_total FROM gerrit_sshd_log $where_user_filter
+
+# ------------------------------------------
+# DISPLAY ON SCREEN GLOBAL STATS
+# ------------------------------------------
+:echo
+:echo
+:echo - SSH summary (total operations: $total, grand total: $grand_total, (totals and stats filtered by user: $user)
+:eval ;SELECT
+    CASE
+        WHEN (SELECT message FROM gerrit_tags WHERE tag = json_extract(log_tags,'$[0]')) LIKE 'GIT-%' THEN 'Git'
+        WHEN (SELECT message FROM gerrit_tags WHERE tag = json_extract(log_tags,'$[0]')) LIKE 'SSH-user-cmd%' THEN 'SSH User Commands'
+        WHEN (SELECT message FROM gerrit_tags WHERE tag = json_extract(log_tags,'$[0]')) LIKE 'SSH-admin-cmd%' THEN 'SSH Admin Commands'
+    END as Action,
+    COUNT(*) as Operations,
+    ROUND((COUNT(*)* 100.0 / $total),2) AS '% of total operations',
+    ROUND((COUNT(*)* 100.0 / $grand_total),2) AS '% of grand total'
+FROM gerrit_sshd_log
+WHERE log_tags IS NOT NULL $and_user_filter
+GROUP BY Action
+ORDER BY Operations DESC
+:write-table-to -
+
+# ------------------------------------------
+# DISPLAY ON SCREEN OPERATIONS STATS
+# ------------------------------------------
+:echo
+:echo
+:echo - SSH operations summary (total operations: $total, grand total: $grand_total (totals and stats filtered by user: $user)
+:eval ;SELECT
+    CASE
+        WHEN (SELECT message FROM gerrit_tags WHERE tag = json_extract(log_tags,'$[0]')) IS NULL THEN json_extract(log_tags,'$[0]')
+        ELSE (SELECT message FROM gerrit_tags WHERE tag = json_extract(log_tags,'$[0]'))
+    END as Action,
+    COUNT(*) as Operations,
+    ROUND((COUNT(*)* 100.0 / $total),2) AS '% of total operations',
+    ROUND((COUNT(*)* 100.0 / $grand_total),2) AS '% of grand total'
+FROM gerrit_sshd_log
+WHERE log_tags IS NOT NULL $and_user_filter
+GROUP BY log_tags
+ORDER BY Operations DESC
+:write-table-to -

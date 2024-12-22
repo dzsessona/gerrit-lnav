@@ -1,0 +1,45 @@
+#
+# @synopsis: gerrit-sshd-tag-admin-commands
+# @description: Tags the messages that are user commands
+
+# ------------------------------------------
+# ADD TAGS FOR USER COMMANDS
+# ------------------------------------------
+;UPDATE gerrit_sshd_log
+SET log_tags = CASE
+    -- Administrator Commands
+    WHEN log_body LIKE 'gerrit.close-connection%' THEN json_concat(log_tags, '#ssh-close-connection')
+    WHEN log_body = 'ps' OR log_body = 'gerrit.show-queue' THEN json_concat(log_tags, '#ssh-show-queue')
+    WHEN log_body LIKE 'gerrit.convert-ref-storage%' THEN json_concat(log_tags, '#ssh-convert-ref-storage')
+    WHEN log_body LIKE 'gerrit.create-account%' THEN json_concat(log_tags, '#ssh-create-account')
+    WHEN log_body LIKE 'gerrit.create-group%' THEN json_concat(log_tags, '#ssh-create-group')
+    WHEN log_body LIKE 'gerrit.create-project%' THEN json_concat(log_tags, '#ssh-create-project')
+    WHEN log_body LIKE 'gerrit.flush-caches%' THEN json_concat(log_tags, '#ssh-flush-caches')
+    WHEN log_body LIKE 'gerrit.gc%' THEN json_concat(log_tags, '#ssh-gc')
+    WHEN log_body LIKE 'gerrit.index.activate%' THEN json_concat(log_tags, '#ssh-index-activate')
+    WHEN log_body LIKE 'gerrit.index.start%' THEN json_concat(log_tags, '#ssh-index-start')
+    WHEN (log_body LIKE 'gerrit.index.changes%' AND log_body NOT LIKE 'gerrit.index.changes-in-project%') THEN json_concat(log_tags, '#ssh-index-changes')
+    WHEN log_body LIKE 'gerrit.index.changes-in-project%' THEN json_concat(log_tags, '#ssh-index-changes-in-project')
+    WHEN log_body LIKE 'gerrit.logging.ls%' THEN json_concat(log_tags, '#ssh-logging-ls')
+    WHEN log_body LIKE 'gerrit.logging.set%' THEN json_concat(log_tags, '#ssh-logging-set')
+    WHEN log_body LIKE 'gerrit.ls-user-refs%' THEN json_concat(log_tags, '#ssh-ls-user-refs')
+    WHEN log_body LIKE 'gerrit.migrate-externalids-to-insensitive%' THEN json_concat(log_tags, '#ssh-migrate-ext-2-insensitive')
+    WHEN (log_body LIKE 'gerrit.plugin.install%' OR log_body LIKE 'gerrit.plugin.add%') THEN json_concat(log_tags, '#ssh-plugin-add')
+    WHEN log_body LIKE 'gerrit.plugin.enable%' THEN json_concat(log_tags, '#ssh-plugin-enable')
+    WHEN log_body LIKE 'gerrit.plugin.ls%' THEN json_concat(log_tags, '#ssh-plugin-ls')
+    WHEN log_body LIKE 'gerrit.plugin.reload%' THEN json_concat(log_tags, '#ssh-plugin-reload')
+    WHEN (log_body LIKE 'gerrit.plugin.remove%' OR log_body LIKE 'gerrit.plugin.rm%') THEN json_concat(log_tags, '#ssh-plugin-remove')
+    WHEN log_body LIKE 'gerrit.reload.config%' THEN json_concat(log_tags, '#ssh-reload-config')
+    WHEN log_body LIKE 'gerrit.set-account%' THEN json_concat(log_tags, '#ssh-set-account')
+    WHEN log_body LIKE 'gerrit.sequence.set%' THEN json_concat(log_tags, '#ssh-sequence-set')
+    WHEN log_body LIKE 'gerrit.sequence.show%' THEN json_concat(log_tags, '#ssh-sequence-show')
+    WHEN log_body LIKE 'gerrit.set-members%' THEN json_concat(log_tags, '#ssh-set-members')
+    WHEN log_body LIKE 'gerrit.show-caches%' THEN json_concat(log_tags, '#ssh-show-caches')
+    WHEN log_body LIKE 'gerrit.show-connections%' THEN json_concat(log_tags, '#ssh-show-connections')
+    WHEN log_body LIKE 'gerrit.show-queue%' THEN json_concat(log_tags, '#ssh-show-queue')
+    WHEN log_body LIKE 'gerrit.test-submit.rule%' THEN json_concat(log_tags, '#ssh-test-submit-rule')
+    WHEN log_body LIKE 'gerrit.test-submit.type%' THEN json_concat(log_tags, '#ssh-test-submit-type')
+    WHEN log_body LIKE 'kill%' THEN json_concat(log_tags, '#ssh-kill')
+    WHEN log_body LIKE '%suexec%' THEN json_concat(log_tags, '#ssh-suexec')
+ELSE log_tags
+END

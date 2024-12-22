@@ -1,0 +1,29 @@
+#
+# @synopsis: gerrit-sshd-tag-user-commands
+# @description: Tags  messages that are ssh user commands
+
+# ------------------------------------------
+# ADD TAGS FOR USER COMMANDS
+# ------------------------------------------
+;UPDATE gerrit_sshd_log
+SET log_tags = CASE
+    -- User Commands
+    WHEN log_body LIKE 'gerrit.apropos%' THEN json_concat(log_tags, '#ssh-apropos')
+    WHEN log_body LIKE 'gerrit.ban-commit%' THEN json_concat(log_tags, '#ssh-ban-commit')
+    WHEN log_body LIKE 'gerrit.check-project-access%' THEN json_concat(log_tags, '#ssh-check-project-access')
+    WHEN log_body LIKE 'gerrit.create-branch%' THEN json_concat(log_tags, '#ssh-create-branch')
+    WHEN log_body LIKE 'gerrit.ls-groups%' THEN json_concat(log_tags, '#ssh-ls-groups')
+    WHEN log_body LIKE 'gerrit.ls-members%' THEN json_concat(log_tags, '#ssh-ls-members')
+    WHEN log_body LIKE 'gerrit.ls-projects%' THEN json_concat(log_tags, '#ssh-ls-projects')
+    WHEN log_body LIKE 'gerrit.query%' THEN json_concat(log_tags, '#ssh-query')
+    WHEN log_body LIKE 'gerrit.rename-group%' THEN json_concat(log_tags, '#ssh-rename-group')
+    WHEN log_body LIKE 'gerrit.review%' THEN json_concat(log_tags, '#ssh-review')
+    WHEN log_body LIKE 'gerrit.set-head%' THEN json_concat(log_tags, '#ssh-set-head')
+    WHEN log_body LIKE 'gerrit.set-project-parent%' THEN json_concat(log_tags, '#ssh-set-project-parent')
+    WHEN (log_body LIKE 'gerrit.set-project%' AND log_body NOT LIKE 'gerrit.set-project-parent%') THEN json_concat(log_tags, '#ssh-set-project')
+    WHEN log_body LIKE 'gerrit.set-reviewers%' THEN json_concat(log_tags, '#ssh-set-reviewers')
+    WHEN log_body LIKE 'gerrit.set-topic%' THEN json_concat(log_tags, '#ssh-set-topic')
+    WHEN log_body LIKE 'gerrit.stream-events%' THEN json_concat(log_tags, '#ssh-stream-events')
+    WHEN log_body LIKE 'gerrit.version%' THEN json_concat(log_tags, '#ssh-version')
+ELSE log_tags
+END

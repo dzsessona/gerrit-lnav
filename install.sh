@@ -93,6 +93,7 @@ function install(){
   install_format_files
   install_script_files "error"
   install_script_files "httpd"
+  install_script_files "sshd"
   install_script_files "filtering"
   install_script_files "misc"
   install_csv2json_if_needed

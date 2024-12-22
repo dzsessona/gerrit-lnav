@@ -1,0 +1,12 @@
+#
+# @synopsis: gerrit-sshd-tag-all
+# @description: Tags the git, user and admin ssh commands
+#
+
+# ------------------------------------------
+# CALL SCRIPT TO TAG GIT AND REST OPERATIONS
+# ------------------------------------------
+|gerrit-sshd-tag-git
+|gerrit-sshd-tag-user-cmd
+|gerrit-sshd-tag-admin-cmd
+|gerrit-sshd-view-tags

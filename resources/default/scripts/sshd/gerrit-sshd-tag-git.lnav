@@ -1,0 +1,14 @@
+#
+# @synopsis: gerrit-sshd-tag-git
+# @description: Tags the messages that ssh git commands
+
+# ------------------------------------------
+# ADD TAGS FOR USER COMMANDS
+# ------------------------------------------
+;UPDATE gerrit_sshd_log
+SET log_tags = CASE 
+    -- Git
+    WHEN log_body LIKE 'git-receive-pack%' THEN json_concat(log_tags, '#git-ssh-receive-pack')
+    WHEN log_body LIKE 'git-upload-pack%' THEN json_concat(log_tags, '#git-ssh-upload-pack')
+ELSE log_tags
+END
