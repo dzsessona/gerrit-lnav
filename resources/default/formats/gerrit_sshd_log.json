@@ -7,13 +7,13 @@
     "file-pattern":"sshd_log*",
     "regex": {
       "std": {
-        "pattern": "^\\[(?<timestamp>\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{3,6}))(?:Z|([\\+\\-]\\d{2}:\\d{2}))?\\][[:blank:]](?<session_id>\\S+)[[:blank:]]\\[(?<thread>.+)\\][[:blank:]](?<username>\\S+)[[:blank:]]a\\/(?<account_id>[\\S]+)[[:blank:]](?<operation>\\S+)[[:blank:]](?<wait>\\S+)[[:blank:]](?<exec>\\S+)[[:blank:]]-[[:blank:]](?<status>\\d+)[[:blank:]](?<client_agent>\\S+)[[:blank:]](?<total_cpu>\\S+)[[:blank:]](?<user_cpu>\\S+)[[:blank:]](?<memory>(-)?\\d+)$"
+        "pattern": "^\\[(?<timestamp>\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{3,6}))(?:Z|(?<timezone>[\\+\\-]\\d{2}:\\d{2}))?\\]\\s(?<session_id>\\S+)\\s\\[(?<thread>.+?)\\]\\s(?<username>\\S+)\\sa\\/(?<account_id>\\S+)\\s(?<operation>\\S+)\\s(?<wait>\\S+)\\s(?<exec>\\S+)\\s(?<unknown>\\S+)\\s(?<status>\\S+)\\s(?<client_agent>-?\\S+)\\s(?<total_cpu>\\S+)\\s(?<user_cpu>\\S+)\\s(?<memory>\\S+)$"
       },
       "login": {
-        "pattern": "^\\[(?<timestamp>\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{3,6}))(?:Z|([\\+\\-]\\d{2}:\\d{2}))?\\][[:blank:]](?<session_id>\\S+)[[:blank:]]\\[(?<thread>.+)\\][[:blank:]](?<username>\\S+)[[:blank:]]a\\/(?<account_id>[\\S]+)[[:blank:]](?<operation>(LOGOUT)|(LOGIN FROM).*)$"
+        "pattern": "^\\[(?<timestamp>\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{3,6}))(?:Z|(?<timezone>[\\+\\-]\\d{2}:\\d{2}))?\\]\\s(?<session_id>\\S+)\\s\\[(?<thread>.+?)\\]\\s(?<username>\\S+)\\sa\\/(?<account_id>[\\S]+)\\s(?<operation>(LOGOUT)|(LOGIN FROM).*)$"
       },
       "upload-pack" :{
-        "pattern": "^\\[(?<timestamp>\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{3,6}))(?:Z|([\\+\\-]\\d{2}:\\d{2}))?\\][[:blank:]](?<session_id>\\S+)[[:blank:]]\\[(?<thread>.+)\\][[:blank:]](?<username>\\S+)[[:blank:]]a\\/(?<account_id>[\\S]+)[[:blank:]](?<operation>git-upload-pack.(\\S)*)[[:blank:]](?<wait>\\S+)[[:blank:]](?<exec>\\S+)[[:blank:]]'(?<time_negotiating>\\S+)[[:blank:]](?<time_searching_for_reuse>\\S+)[[:blank:]](?<time_searching_for_sizes>\\S+)[[:blank:]](?<time_counting>\\S+)[[:blank:]](?<time_compressing>\\S+)[[:blank:]](?<time_writing>\\S+)[[:blank:]](?<total_time_in_uploadpack>\\S+)[[:blank:]](?<bitmap_index_misses>(-1)|\\d+)[[:blank:]](?<total_deltas>(-1)|\\d+)[[:blank:]](?<total_objects>(-1)|\\d+)[[:blank:]](?<total_bytes>(-1)|\\d+)'[[:blank:]](?<status>\\d+)[[:blank:]](?<client_agent>\\S+)[[:blank:]](?<total_cpu>\\S+)[[:blank:]](?<user_cpu>\\S+)[[:blank:]](?<memory>\\d+)$"
+        "pattern": "^\\[(?<timestamp>\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{3,6}))(?:Z|(?<timezone>[\\+\\-]\\d{2}:\\d{2}))?\\]\\s(?<session_id>\\S+)\\s\\[(?<thread>.+?)\\]\\s(?<username>\\S+)\\sa\\/(?<account_id>[\\S]+)\\s(?<operation>git-upload-pack.(\\S)*)\\s(?<wait>\\S+)\\s(?<exec>\\S+)\\s'(?<time_negotiating>\\S+)\\s(?<time_searching_for_reuse>\\S+)\\s(?<time_searching_for_sizes>\\S+)\\s(?<time_counting>\\S+)\\s(?<time_compressing>\\S+)\\s(?<time_writing>\\S+)\\s(?<total_time_in_uploadpack>\\S+)\\s(?<bitmap_index_misses>(-1)|\\d+)\\s(?<total_deltas>(-1)|\\d+)\\s(?<total_objects>(-1)|\\d+)\\s(?<total_bytes>(-1)|\\d+)'\\s(?<status>\\d+)\\s(?<client_agent>\\S+)\\s(?<total_cpu>\\S+)\\s(?<user_cpu>\\S+)\\s(?<memory>\\d+)$"
       }
     },
     "opid-field": "session_id",
@@ -79,6 +79,9 @@
       "timestamp": {
         "kind": "string"
       },
+      "timezone": {
+        "kind": "string"
+      },
       "total_bytes": {
         "kind": "string"
       },
@@ -98,7 +101,8 @@
         "kind": "string"
       },
       "username": {
-        "kind": "string"
+        "kind": "string",
+        "identifier": true
       },
       "wait": {
         "kind": "string"
